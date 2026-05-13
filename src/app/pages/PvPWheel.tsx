@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 import { toast } from 'sonner';
 import { Users, Clock, Trophy, Zap, TrendingUp, Info, Shield, Copy, Check, HelpCircle, X } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -121,8 +122,9 @@ const createInitialTierState = (): TierState => ({
 
 export function PvPWheel() {
   const { gameBalance, updateGameBalance, formatUSDT } = useUser();
+  const { addWagering } = useBonus();
   const navigate = useNavigate();
-  
+
   // Active tier selection
   const [activeTier, setActiveTier] = useState<TierType>('CASUAL');
   
@@ -586,7 +588,8 @@ export function PvPWheel() {
       
       // Deduct balance
       updateGameBalance(-betToUse);
-      
+      addWagering(betToUse); // Track wagering for bonus
+
       // Add player
       setTierStates(prevStates => {
         const currentTierState = prevStates[activeTier];
@@ -710,7 +713,8 @@ export function PvPWheel() {
     
     // Deduct balance
     updateGameBalance(-betAmount);
-    
+    addWagering(betAmount); // Track wagering for bonus
+
     // Add user to tier
     setTierStates(prevStates => {
       const currentTierState = prevStates[activeTier];

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 import { toast } from 'sonner';
 import { Menu, Info, Sparkles, History, Shield, Settings, Volume2, VolumeX, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router';
@@ -18,6 +19,7 @@ type GameResult = {
 
 export function WheelGame() {
   const { gameBalance, updateGameBalance, formatUSDT } = useUser();
+  const { addWagering } = useBonus();
   const navigate = useNavigate();
   const [betAmount, setBetAmount] = useState<number>(10);
   const [autoBetAmount, setAutoBetAmount] = useState<number>(1);
@@ -114,6 +116,7 @@ export function WheelGame() {
 
     setIsSpinning(true);
     updateGameBalance(-betAmount);
+    addWagering(betAmount); // Track wagering for bonus
     setNonce(prev => prev + 1);
 
     const spins = 5 + Math.random() * 3;

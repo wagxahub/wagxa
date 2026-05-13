@@ -24,13 +24,16 @@ import { AffiliateWallet } from './pages/AffiliateWallet';
 import { CrashGame } from './pages/CrashGame';
 import { PvPWheel } from './pages/PvPWheel';
 import PvPCoinFlip from './pages/PvPCoinFlip';
+import WelcomeBonus from './pages/WelcomeBonus';
+import BonusSuccess from './pages/BonusSuccess';
 
 export const router = createBrowserRouter([
   {
     path: "/",
     Component: Root,
     children: [
-      { index: true, Component: HomePage },
+      { index: true, Component: Wallet },
+      { path: "home", Component: HomePage },
       { path: "dashboard", Component: Dashboard },
       { path: "game", Component: Game },
       { path: "dice-pool", Component: DicePool },
@@ -43,6 +46,8 @@ export const router = createBrowserRouter([
       { path: "daily-rewards", Component: DailyRewards },
       { path: "daily-rebate", Component: DailyRebate },
       { path: "wallet", Component: Wallet },
+      { path: "welcome-bonus", Component: WelcomeBonus },
+      { path: "bonus-success", Component: BonusSuccess },
       { path: "referrals", Component: Referrals },
       { path: "referral-wallet", Component: ReferralWallet },
       { path: "affiliate-wallet", Component: AffiliateWallet },

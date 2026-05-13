@@ -63,9 +63,9 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
-  const [balance, setBalanceState] = useState(12500);
-  const [gameBalance, setGameBalance] = useState(5000);
-  const [usdtBalance, setUsdtBalance] = useState(25.50);
+  const [balance, setBalanceState] = useState(0);
+  const [gameBalance, setGameBalance] = useState(0);
+  const [usdtBalance, setUsdtBalance] = useState(0);
   const [advertiseBalance, setAdvertiseBalance] = useState(0);
   const [referralBalance, setReferralBalance] = useState(3500);
   const [isVIP, setIsVIP] = useState(false);
@@ -114,7 +114,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
   // Load from localStorage on mount
   useEffect(() => {
     const savedCurrency = localStorage.getItem('currencyPreference') as 'ngn' | 'usd' | null;
-    
+
     if (savedCurrency) {
       setCurrencyPreferenceState(savedCurrency);
     }
@@ -123,6 +123,35 @@ export function UserProvider({ children }: { children: ReactNode }) {
     root.classList.add('dark');
     root.classList.add('dark-theme');
     root.classList.remove('light-theme');
+  }, []);
+
+  // Listen for bonus completion events
+  useEffect(() => {
+    const handleBonusCompleted = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { amount } = customEvent.detail;
+
+      // Transfer bonus to main balance
+      setBalanceState(prev => prev + amount);
+
+      // Add to transaction history
+      const newTransaction = {
+        id: Date.now().toString(),
+        description: `Bonus Converted to Main Balance - $${amount.toFixed(2)}`,
+        amount: amount,
+        date: new Date().toLocaleDateString(),
+        status: 'completed',
+        icon: '✅',
+        type: 'transfer' as const
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
+    };
+
+    window.addEventListener('bonusCompleted', handleBonusCompleted);
+
+    return () => {
+      window.removeEventListener('bonusCompleted', handleBonusCompleted);
+    };
   }, []);
 
   const setBalance = (newBalance: number) => {

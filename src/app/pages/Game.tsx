@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { TopBar } from '../components/TopBar';
 import { BackButton } from '../components/BackButton';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 import { toast } from 'sonner';
 import { Shield, RefreshCw, Info, Users, TrendingUp, Clock } from 'lucide-react';
 import { GameFooter } from '../components/GameFooter';
@@ -10,6 +11,7 @@ type GameResult = 'red' | 'blue';
 
 export function Game() {
   const { balance, updateBalance, formatCurrency: globalFormatCurrency, currencyPreference, gameBalance, updateGameBalance } = useUser();
+  const { addWagering } = useBonus();
   const [betAmount, setBetAmount] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedColor, setSelectedColor] = useState<'red' | 'blue' | null>(null);
@@ -168,6 +170,7 @@ export function Game() {
 
   const confirmBet = () => {
     updateGameBalance(-betAmount);
+    addWagering(betAmount); // Track wagering for bonus
     setIsPlaying(true);
 
     if (selectedColor === 'red') {

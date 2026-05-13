@@ -1,5 +1,6 @@
 import { Menu, User, Bell } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useNotifications } from '../context/NotificationContext';
 import { useSidebar } from '../context/SidebarContext';
 import { useNavigate } from 'react-router';
 import logoImg from '../../imports/1000609262.png';
@@ -25,6 +26,7 @@ import { VIPProgressModal } from './VIPProgressModal';
 
 export function TopBar() {
   const { balance, gameBalance, formatUSDT, vipLevel } = useUser();
+  const { unreadCount } = useNotifications();
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
   const [showVIPProgress, setShowVIPProgress] = useState(false);
@@ -91,7 +93,11 @@ export function TopBar() {
               backgroundColor: 'rgba(255,255,255,0.12)'
             }}>
               <Bell className="w-5 h-5 text-white" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center">3</span>
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[20px] h-5 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center px-1">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
             </button>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{
               backgroundColor: 'rgba(255,255,255,0.12)'

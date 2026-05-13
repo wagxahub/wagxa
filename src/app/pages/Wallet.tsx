@@ -1,5 +1,6 @@
 import { Menu, User, Bell, Eye, ArrowDown, ArrowUp, Gamepad2, ArrowRight, Gift, TrendingUp, DollarSign, Crown, Clock, ChevronRight, Sparkles, X } from 'lucide-react';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { DepositModal } from '../components/DepositModal';
@@ -8,9 +9,11 @@ import { TransferModal } from '../components/TransferModal';
 import { toast } from 'sonner';
 import { TopBar } from '../components/TopBar';
 import { ResponsiveContainer } from '../components/ResponsiveContainer';
+import NoDepositBonusModal from '../components/NoDepositBonusModal';
 
 export function Wallet() {
   const { gameBalance, usdtBalance, formatUSDT, balance, formatCurrency, isVIP, setBalance, setGameBalance, transactions: contextTransactions, addTransaction } = useUser();
+  const { bonusBalance, activeBonus, getBonusProgress, hasClaimedWelcomeBonus, hasClaimedNoDepositBonus } = useBonus();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({ hours: 15, minutes: 17 });
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -19,13 +22,14 @@ export function Wallet() {
   const [showTransferFromGameModal, setShowTransferFromGameModal] = useState(false);
   const [showGiftUpgradeModal, setShowGiftUpgradeModal] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
+  const [showNoDepositModal, setShowNoDepositModal] = useState(false);
   const [isGiftClaimed, setIsGiftClaimed] = useState(false);
   const [reward, setReward] = useState(0);
   const [rewardType, setRewardType] = useState<'cash' | 'vip1' | 'vip2' | 'vip3' | 'cashback'>('cash');
   const [isOpening, setIsOpening] = useState(false);
 
-  // Calculate total balance correctly: main balance + game balance
-  const totalBalance = balance + gameBalance;
+  // Calculate total balance correctly: main balance + game balance + bonus balance
+  const totalBalance = balance + gameBalance + bonusBalance;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -167,27 +171,43 @@ export function Wallet() {
                   </div>
 
                   {/* 2. BALANCE BREAKDOWN */}
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1" style={{
+                  <div className="grid grid-cols-3 gap-2 mb-5">
+                    <div className="flex flex-col gap-1 px-2 py-2 rounded-xl" style={{
                       backgroundColor: 'rgba(255,255,255,0.2)'
                     }}>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                        <rect x="2" y="5" width="20" height="14" rx="2"/>
-                        <path d="M2 10h20" stroke="rgba(33,150,243,1)" strokeWidth="2"/>
-                      </svg>
-                      <div>
-                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Main Balance</p>
+                      <div className="flex items-center justify-center">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+                          <rect x="2" y="5" width="20" height="14" rx="2"/>
+                          <path d="M2 10h20" stroke="rgba(33,150,243,1)" strokeWidth="2"/>
+                        </svg>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Main</p>
                         <p className="text-sm font-bold text-white">{formatUSDT(balance)}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-xl flex-1" style={{
+                    <div className="flex flex-col gap-1 px-2 py-2 rounded-xl" style={{
                       backgroundColor: 'rgba(255,255,255,0.2)'
                     }}>
-                      <Gamepad2 className="w-5 h-5 text-white" />
-                      <div>
-                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Game Balance</p>
+                      <div className="flex items-center justify-center">
+                        <Gamepad2 className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Game</p>
                         <p className="text-sm font-bold text-white">{formatUSDT(gameBalance)}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1 px-2 py-2 rounded-xl" style={{
+                      backgroundColor: 'rgba(255,255,255,0.2)'
+                    }}>
+                      <div className="flex items-center justify-center">
+                        <Gift className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>Bonus</p>
+                        <p className="text-sm font-bold text-white">{formatUSDT(bonusBalance)}</p>
                       </div>
                     </div>
                   </div>
@@ -292,7 +312,115 @@ export function Wallet() {
 
           {/* ==================== RIGHT COLUMN - SECONDARY (40%) ==================== */}
           <div className="space-y-6 mt-4 lg:mt-0">
-            
+
+            {/* ACTIVE BONUS PROGRESS */}
+            {activeBonus && (
+              <div className="rounded-2xl p-6 relative overflow-hidden" style={{
+                backgroundColor: 'var(--bg-card)',
+                border: '1px solid rgba(139, 92, 246, 0.3)',
+                background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(168, 85, 247, 0.05) 100%)'
+              }}>
+                <div className="flex items-center gap-2 mb-4">
+                  <Gift className="w-5 h-5 text-purple-400" />
+                  <h3 className="font-bold text-white">Active Bonus</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between text-sm mb-2">
+                      <span className="text-slate-400">Wagering Progress</span>
+                      <span className="text-white font-medium">
+                        ${activeBonus.wageringCompleted.toFixed(2)} / ${activeBonus.wageringRequired.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min(getBonusProgress().percentage, 100)}%` }}
+                      ></div>
+                    </div>
+                    <p className="text-xs text-slate-400 mt-1">
+                      {getBonusProgress().percentage.toFixed(1)}% complete
+                    </p>
+                  </div>
+
+                  {activeBonus.expiryDate && (
+                    <div className="flex items-center gap-2 text-sm">
+                      <Clock className="w-4 h-4 text-blue-400" />
+                      <span className="text-slate-300">
+                        Expires {new Date(activeBonus.expiryDate).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* BONUS OFFERS */}
+            {(!hasClaimedWelcomeBonus || !hasClaimedNoDepositBonus) && (
+              <div className="space-y-4">
+                {/* Welcome Bonus */}
+                {!hasClaimedWelcomeBonus && (
+                  <div
+                    onClick={() => navigate('/welcome-bonus')}
+                    className="rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.02]"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%)',
+                      border: '1px solid rgba(139, 92, 246, 0.3)',
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Gift className="w-6 h-6 text-purple-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-purple-400">WELCOME BONUS</div>
+                        <div className="text-base font-bold text-white mb-1">Up to $200</div>
+                        <p className="text-xs text-slate-300 mb-2">
+                          Claim your welcome bonus and boost your balance!
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-purple-300">
+                          <TrendingUp className="w-3 h-3" />
+                          <span>5 Bonus Tiers</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-purple-400 flex-shrink-0 mt-1" />
+                    </div>
+                  </div>
+                )}
+
+                {/* No Deposit Bonus - Only show if welcome bonus NOT claimed */}
+                {!hasClaimedNoDepositBonus && !hasClaimedWelcomeBonus && (
+                  <div
+                    onClick={() => setShowNoDepositModal(true)}
+                    className="rounded-2xl p-4 cursor-pointer transition-all hover:scale-[1.02]"
+                    style={{
+                      background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 100%)',
+                      border: '1px solid rgba(16, 185, 129, 0.3)',
+                    }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Gift className="w-6 h-6 text-green-400" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-bold text-green-400">NO DEPOSIT</div>
+                        <div className="text-base font-bold text-white mb-1">Free $5</div>
+                        <p className="text-xs text-slate-300 mb-2">
+                          Get $5 free - no deposit required!
+                        </p>
+                        <div className="flex items-center gap-1 text-xs text-green-300">
+                          <TrendingUp className="w-3 h-3" />
+                          <span>20x Wagering</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-green-400 flex-shrink-0 mt-1" />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* 1. CLAIM BONUS (TOP PRIORITY) */}
             <div className="rounded-3xl p-4 flex items-center justify-between relative overflow-hidden" style={{
               background: 'linear-gradient(90deg, #FFF9E6 0%, #FFECB3 100%)',
@@ -692,6 +820,12 @@ export function Wallet() {
           </div>
         </div>
       )}
+
+      {/* No Deposit Bonus Modal */}
+      <NoDepositBonusModal
+        isOpen={showNoDepositModal}
+        onClose={() => setShowNoDepositModal(false)}
+      />
     </div>
   );
 }

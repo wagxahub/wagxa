@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BackButton } from '../components/BackButton';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 import { Info, Crown, Send, MessageCircle, Shield, ChevronDown, ChevronUp, Swords, Zap, Target } from 'lucide-react';
 import { GameFooter } from '../components/GameFooter';
 
@@ -39,6 +40,7 @@ interface PvPPlayer {
 
 export function DicePool() {
   const { formatCurrency, gameBalance, currencyPreference, updateGameBalance } = useUser();
+  const { addWagering } = useBonus();
   const [gameMode, setGameMode] = useState<GameMode>('classic');
   const [timeLeft, setTimeLeft] = useState(30);
   const [betAmount, setBetAmount] = useState(0);
@@ -122,7 +124,8 @@ export function DicePool() {
     
     setPvpState('matching');
     updateGameBalance(-myPvPBet);
-    
+    addWagering(myPvPBet); // Track wagering for bonus
+
     // Simulate finding opponent
     setTimeout(() => {
       const opponentBet = Math.floor(Math.random() * (100 - 5 + 1)) + 5;
@@ -374,7 +377,8 @@ export function DicePool() {
     
     // Deduct from game balance
     updateGameBalance(-betAmount);
-    
+    addWagering(betAmount); // Track wagering for bonus
+
     // Add to pool
     setPoolGrowing(true);
     setTotalPool(prev => prev + betAmount);

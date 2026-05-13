@@ -1,30 +1,11 @@
-import { Bell, CheckCircle, Info, Gift, Trophy } from 'lucide-react';
+import { Bell, CheckCircle } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { BackButton } from '../components/BackButton';
-import { useUser } from '../context/UserContext';
-import { useState } from 'react';
+import { useNotifications } from '../context/NotificationContext';
+import { motion } from 'motion/react';
 
 export function Notifications() {
-  const { formatCurrency } = useUser();
-  const [notifications, setNotifications] = useState([
-    { id: 1, type: 'win', title: 'Game Win!', message: `You won ${formatCurrency(1800)} in the color prediction game`, time: '5 mins ago', read: false, icon: '🎮' },
-    { id: 2, type: 'reward', title: 'Daily Reward', message: `${formatCurrency(300)} daily reward claimed successfully`, time: '2 hours ago', read: false, icon: '🎁' },
-    { id: 3, type: 'referral', title: 'New Referral', message: `You earned ${formatCurrency(500)} from a referral!`, time: '1 day ago', read: true, icon: '👥' },
-    { id: 4, type: 'prediction', title: 'AI Prediction Update', message: 'New premium predictions available', time: '1 day ago', read: true, icon: '⚽' },
-    { id: 5, type: 'system', title: 'Welcome!', message: 'Welcome to the Gaming Platform', time: '2 days ago', read: true, icon: '✨' },
-  ]);
-
-  const markAsRead = (id: number) => {
-    setNotifications(notifications.map(n => 
-      n.id === id ? { ...n, read: true } : n
-    ));
-  };
-
-  const markAllRead = () => {
-    setNotifications(notifications.map(n => ({ ...n, read: true })));
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const { notifications, unreadCount, markAsRead, markAllRead } = useNotifications();
 
   return (
     <div className="min-h-screen overflow-y-auto" style={{ backgroundColor: 'var(--bg-primary)' }}>
@@ -60,36 +41,54 @@ export function Notifications() {
         </div>
 
         <div className="space-y-3">
-          {notifications.map((notification) => (
-            <div
+          {notifications.map((notification, index) => (
+            <motion.div
               key={notification.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
               onClick={() => markAsRead(notification.id)}
-              className="rounded-lg shadow-sm p-4 cursor-pointer transition-all hover:opacity-80"
+              className="rounded-2xl p-5 cursor-pointer transition-all hover:scale-[1.02] active:scale-[0.98] relative overflow-hidden"
               style={{
-                backgroundColor: notification.read ? 'var(--bg-card)' : 'rgba(10, 132, 255, 0.05)',
-                borderLeft: notification.read ? 'none' : '3px solid #0A84FF',
+                backgroundColor: notification.read ? 'var(--bg-card)' : 'rgba(10, 132, 255, 0.08)',
+                border: notification.read ? '1px solid var(--border-color)' : '1px solid rgba(10, 132, 255, 0.3)',
+                boxShadow: notification.read ? 'none' : '0 4px 12px rgba(10, 132, 255, 0.1)',
               }}
             >
-              <div className="flex items-start gap-3">
-                <div className="text-2xl">{notification.icon}</div>
+              {!notification.read && (
+                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-blue-500/10 to-transparent rounded-bl-full" />
+              )}
+
+              <div className="flex items-start gap-4 relative">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                  style={{
+                    backgroundColor: notification.read ? 'rgba(255,255,255,0.05)' : 'rgba(10, 132, 255, 0.15)',
+                  }}
+                >
+                  {notification.icon}
+                </div>
+
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
-                    <h3 className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    <h3 className="font-bold text-base" style={{ color: 'var(--text-primary)' }}>
                       {notification.title}
                     </h3>
                     {!notification.read && (
-                      <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ backgroundColor: '#0A84FF' }} />
+                      <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-2 animate-pulse" style={{ backgroundColor: '#0A84FF' }} />
                     )}
                   </div>
-                  <p className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-sm mb-2 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                     {notification.message}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                    {notification.time}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <div className="w-1 h-1 rounded-full" style={{ backgroundColor: 'var(--text-tertiary)' }} />
+                    <p className="text-xs font-medium" style={{ color: 'var(--text-tertiary)' }}>
+                      {notification.time}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 

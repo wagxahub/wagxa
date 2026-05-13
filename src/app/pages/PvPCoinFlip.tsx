@@ -5,6 +5,7 @@ import { ArrowLeft, Zap, Shield, FileText, X, RefreshCw, Users, Play, Plus, LogO
 import { TopBar } from '../components/TopBar';
 import { toast } from 'sonner';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 
 // Types
 type CoinSide = 'HEADS' | 'TAILS';
@@ -67,9 +68,10 @@ const generateBot = (side: CoinSide): Player => ({
 
 export default function PvPCoinFlip() {
   const navigate = useNavigate();
-  
+
   // Use global game balance from context
   const { gameBalance, updateGameBalance, formatUSDT } = useUser();
+  const { addWagering } = useBonus();
   
   // Current view: 'lobby' | 'room'
   const [currentView, setCurrentView] = useState<'lobby' | 'room'>('lobby');
@@ -168,6 +170,7 @@ export default function PvPCoinFlip() {
 
     // Deduct stake from balance
     updateGameBalance(-selectedStakeForPrivate);
+    addWagering(selectedStakeForPrivate); // Track wagering for bonus
 
     // Create room
     const newRoom: Room = {
@@ -212,6 +215,7 @@ export default function PvPCoinFlip() {
 
     // Deduct stake from balance
     updateGameBalance(-selectedStakeForPrivate);
+    addWagering(selectedStakeForPrivate); // Track wagering for bonus
 
     // Create/Join room (simulated - in real app would look up existing room)
     const newRoom: Room = {
@@ -295,7 +299,8 @@ export default function PvPCoinFlip() {
     
     // Deduct stake from balance
     updateGameBalance(-stakeAmount);
-    
+    addWagering(stakeAmount); // Track wagering for bonus
+
     // Search for existing room or create new one
     toast.info('Searching for opponent...');
     
@@ -340,6 +345,7 @@ export default function PvPCoinFlip() {
 
     // Deduct stake from balance
     updateGameBalance(-stakeAmount);
+    addWagering(stakeAmount); // Track wagering for bonus
 
     // Create room
     const newRoom: Room = {
@@ -606,7 +612,8 @@ export default function PvPCoinFlip() {
     
     // Deduct stake
     updateGameBalance(-currentRoom.stakeAmount);
-    
+    addWagering(currentRoom.stakeAmount); // Track wagering for bonus
+
     // Simulate opponent accepting rematch
     setTimeout(() => {
       performReset('rematch');

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { ArrowLeft, Shield, Info, BarChart3, ChevronUp, ChevronDown, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useUser } from '../context/UserContext';
+import { useBonus } from '../context/BonusContext';
 import { toast } from 'sonner';
 import { GameFooter } from '../components/GameFooter';
 
@@ -35,6 +36,7 @@ interface BetHistoryItem {
 export function CrashGame() {
   const navigate = useNavigate();
   const { gameBalance, updateGameBalance, formatUSDT } = useUser();
+  const { addWagering } = useBonus();
   const canvasRefMobile = useRef<HTMLCanvasElement>(null);
   const canvasRefDesktop = useRef<HTMLCanvasElement>(null);
   
@@ -429,6 +431,7 @@ export function CrashGame() {
     }
     
     updateGameBalance(-betAmount);
+    addWagering(betAmount); // Track wagering for bonus
     setHasPlacedBet(true);
     setPlayers(prev => [...prev, { id: 'player', name: 'You', bet: betAmount, status: 'active' }]);
     toast.success(`Bet placed: ${formatUSDT(betAmount)}`);
