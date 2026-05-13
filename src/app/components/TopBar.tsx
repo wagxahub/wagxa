@@ -1,21 +1,27 @@
-import { Menu, Bell } from 'lucide-react';
+import { Menu, User, Bell } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useSidebar } from '../context/SidebarContext';
 import { useNavigate } from 'react-router';
-import { useState } from 'react';
-
+import logoImg from '../../imports/1000609262.png';
 import { VIPCrown } from './VIPCrown';
+import { useState } from 'react';
 import { VIPProgressModal } from './VIPProgressModal';
 
-// Import logo (choose ONE method below)
-
-
-// ==================== OPTION 1: Recommended (Public Folder) ====================
-const logoImg = "/images/1000609262.png";   // ← Put your image in public/images/
-
-// ==================== OPTION 2: Import as module (if image is in src/) ====================
-// import logoImg from '../../imports/1000609262.png';
-
+/**
+ * GLOBAL HEADER COMPONENT
+ * 
+ * DESKTOP (lg: 1024px+):
+ * - LEFT: Logo only (no hamburger)
+ * - CENTER: VIP Badge (if VIP)
+ * - RIGHT: Notifications + Balance + Profile
+ * 
+ * MOBILE:
+ * - LEFT: Hamburger + Logo
+ * - CENTER: VIP Badge (if VIP)
+ * - RIGHT: Notifications + Balance
+ * 
+ * Used across ALL pages for consistency
+ */
 
 export function TopBar() {
   const { balance, gameBalance, formatUSDT, vipLevel } = useUser();
@@ -23,6 +29,7 @@ export function TopBar() {
   const navigate = useNavigate();
   const [showVIPProgress, setShowVIPProgress] = useState(false);
 
+  // Calculate total balance (main + game)
   const totalBalance = balance + gameBalance;
 
   return (
@@ -31,7 +38,6 @@ export function TopBar() {
         background: 'linear-gradient(135deg, var(--blue-gradient-start) 0%, var(--blue-gradient-end) 100%)',
       }}>
         <div className="flex items-center justify-between w-full max-w-[480px] md:max-w-[768px] lg:max-w-[1280px] mx-auto px-4 md:px-6 lg:px-8">
-          
           {/* LEFT: Mobile Menu + Logo */}
           <div className="flex items-center gap-3">
             {/* Hamburger Menu - MOBILE ONLY */}
@@ -46,13 +52,11 @@ export function TopBar() {
             <button
               onClick={() => navigate('/')}
               className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden transition-all hover:scale-110 active:scale-95"
-              style={{ backgroundColor: 'rgba(255,255,255,0.15)' }}
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.15)'
+              }}
             >
-              <img 
-                src={logoImg} 
-                alt="Logo" 
-                className="w-full h-full object-contain p-1.5" 
-              />
+              <img src={logoImg} alt="Logo" className="w-full h-full object-contain p-1.5" />
             </button>
           </div>
 
@@ -83,17 +87,15 @@ export function TopBar() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate('/notifications')}
-              className="w-10 h-10 rounded-full flex items-center justify-center relative"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
-            >
+              className="w-10 h-10 rounded-full flex items-center justify-center relative" style={{
+              backgroundColor: 'rgba(255,255,255,0.12)'
+            }}>
               <Bell className="w-5 h-5 text-white" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center">
-                3
-              </span>
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-white text-xs font-bold flex items-center justify-center">3</span>
             </button>
-
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" 
-                 style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}>
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg" style={{
+              backgroundColor: 'rgba(255,255,255,0.12)'
+            }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
                 <rect x="2" y="5" width="20" height="14" rx="2"/>
                 <path d="M2 10h20"/>

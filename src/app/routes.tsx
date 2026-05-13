@@ -24,11 +24,6 @@ import { AffiliateWallet } from './pages/AffiliateWallet';
 import { CrashGame } from './pages/CrashGame';
 import { PvPWheel } from './pages/PvPWheel';
 import PvPCoinFlip from './pages/PvPCoinFlip';
-import BonusDemo from './pages/BonusDemo';
-import WelcomeBonus from './pages/WelcomeBonus';
-import BonusSuccess from './pages/BonusSuccess';
-import BonusBalance from './pages/BonusBalance';
-import WalletUpdated from './pages/WalletUpdated';
 
 export const router = createBrowserRouter([
   {
@@ -59,11 +54,6 @@ export const router = createBrowserRouter([
       { path: "advertiser", Component: AdvertiserDashboard },
       { path: "advertiser/create", Component: CreateCampaign },
       { path: "advertiser/earn", Component: AdvertiseEarn },
-      { path: "bonus-demo", Component: BonusDemo },
-      { path: "welcome-bonus", Component: WelcomeBonus },
-      { path: "bonus-success", Component: BonusSuccess },
-      { path: "bonus-balance", Component: BonusBalance },
-      { path: "wallet-updated", Component: WalletUpdated },
     ],
   },
 ]);

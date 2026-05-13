@@ -1,5 +1,6 @@
 import { Menu } from 'lucide-react';
 import { useState } from 'react';
+import logoImg from '../../imports/1000609262.png';
 import { useAuth } from '../context/AuthContext';
 
 interface LandingHeaderProps {
@@ -20,41 +21,38 @@ export function LandingHeader({ onMenuClick }: LandingHeaderProps) {
         height: '56px',
         backgroundColor: 'rgba(13, 15, 20, 0.95)',
         backdropFilter: 'blur(12px)',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+        borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
       }}
     >
-      <div className="h-full max-w-[1280px] mx-auto px-4 md:px-6 flex items-center justify-between">
-        
+      <div className="h-full max-w-[1280px] mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-3">
-          <div 
-            className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
-            style={{ backgroundColor: 'rgba(255, 255, 255, 0.08)' }}
-          >
-            <img 
-              src="https://via.placeholder.com/150x150/4F46E5/FFFFFF?text=WAGXIA" 
-              alt="WAGXIA Logo" 
-              className="w-full h-full object-contain p-1" 
-            />
+          <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden" style={{
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+          }}>
+            <img src={logoImg} alt="Logo" className="w-full h-full object-contain p-1.5" />
           </div>
-          <span className="font-bold text-xl text-white tracking-tight">WAGXIA</span>
         </div>
 
-        {/* Right Side */}
+        {/* Right Actions */}
         <div className="flex items-center gap-4">
           <button
             onClick={handleSignIn}
-            className="px-5 py-1.5 text-sm font-medium text-white bg-white/10 hover:bg-white/20 rounded-lg transition-colors"
+            className="text-sm font-medium transition-colors"
+            style={{
+              color: '#FFFFFF',
+            }}
           >
             Sign In
           </button>
-
-          {/* Mobile Menu Button */}
-          <button 
+          <button
             onClick={onMenuClick}
-            className="lg:hidden w-9 h-9 flex items-center justify-center"
+            className="w-9 h-9 rounded-lg flex items-center justify-center transition-all hover:bg-opacity-20"
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            }}
           >
-            <Menu className="w-6 h-6 text-white" />
+            <Menu className="w-5 h-5" style={{ color: '#A0A6B1' }} />
           </button>
         </div>
       </div>
