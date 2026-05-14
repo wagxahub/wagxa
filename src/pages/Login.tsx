@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "../lib/supabase";
+import { signIn } from "../lib/auth";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -10,34 +10,35 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    console.log("🔄 LOGIN ATTEMPT...");
+    try {
+      const { data, error } = await signIn(email, password);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      console.log("LOGIN RESPONSE:", { data, error });
 
-    setLoading(false);
+      setLoading(false);
 
-    console.log("📦 LOGIN RESPONSE:", { data, error });
+      // ❌ ERROR HANDLING
+      if (error) {
+        alert(error.message);
+        return;
+      }
 
-    // ❌ ERROR CASE
-    if (error) {
-      alert(error.message);
-      return;
+      // ❌ NO SESSION CHECK
+      if (!data?.session) {
+        alert("Login failed: No session created");
+        return;
+      }
+
+      // ✅ SUCCESS
+      alert("Login successful");
+
+      // 🔥 SAFE REDIRECT (works on Vercel + local)
+      window.location.href = "/wallet";
+    } catch (err) {
+      setLoading(false);
+      console.log("UNEXPECTED ERROR:", err);
+      alert("Something went wrong");
     }
-
-    // ❌ NO SESSION CASE
-    if (!data?.session) {
-      alert("Login failed: No session returned");
-      return;
-    }
-
-    // ✅ SUCCESS
-    alert("Login successful");
-
-    // 🔥 FORCE NAVIGATION (most reliable in your setup)
-    window.location.href = "/wallet";
   };
 
   return (
