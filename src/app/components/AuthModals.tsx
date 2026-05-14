@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
+import { X, Mail, Lock } from 'lucide-react';
 import { supabase } from "../../lib/supabase";
 
 interface AuthModalsProps {
@@ -9,66 +9,112 @@ interface AuthModalsProps {
   onSuccess?: () => void;
 }
 
-export function AuthModals({ show, onClose, initialMode = 'login', onSuccess }: AuthModalsProps) {
+export function AuthModals({
+  show,
+  onClose,
+  initialMode = 'login',
+  onSuccess,
+}: AuthModalsProps) {
+
   const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Login form state
   const [loginData, setLoginData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
 
-  // Register form state
   const [registerData, setRegisterData] = useState({
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
   });
 
-const handleLogin = async (e: React.FormEvent) => {
-  e.preventDefault();
+  // ✅ LOGIN
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-  setError('');
-  setIsLoading(true);
+    console.log("🔥 LOGIN CLICKED");
 
-  try {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginData.email,
-      password: loginData.password,
-    });
+    setError('');
+    setIsLoading(true);
 
-    console.log("MODAL LOGIN:", { data, error });
-alert(JSON.stringify({ data, error }));
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginData.email,
+        password: loginData.password,
+      });
 
-    if (error) {
-      setError(error.message);
+      console.log("🔥 SUPABASE LOGIN RESPONSE:", { data, error });
+
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      if (!data?.session) {
+        setError("No session created");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(false);
-      return;
-    }
+      onClose();
 
-    if (!data?.session) {
-      setError("No session created");
+      if (onSuccess) onSuccess();
+
+      window.location.href = "/wallet";
+
+    } catch (err) {
+      console.log(err);
+      setError("Something went wrong");
       setIsLoading(false);
-      return;
     }
-
-    setIsLoading(false);
-
-    // ✅ CLOSE MODAL
-    onClose();
-
-    // ✅ REDIRECT
-    window.location.href = "/wallet";
-
-  } catch (err) {
-    console.log(err);
-    setError("Something went wrong");
-    setIsLoading(false);
-  }
-};
   };
+
+  // ✅ REGISTER (basic working version)
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setError('');
+    setIsLoading(true);
+
+    if (registerData.password !== registerData.confirmPassword) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: registerData.email,
+        password: registerData.password,
+      });
+
+      console.log("🔥 REGISTER RESPONSE:", { data, error });
+
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(false);
+      onClose();
+
+      if (onSuccess) onSuccess();
+
+      window.location.href = "/wallet";
+
+    } catch (err) {
+      console.log(err);
+      setError("Something went wrong");
+      setIsLoading(false);
+    }
+  };
+
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
     setError('');
@@ -77,348 +123,118 @@ alert(JSON.stringify({ data, error }));
   if (!show) return null;
 
   return (
-    <>
-      {/* Backdrop */}
+    <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
+      {/* BACKDROP */}
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
-          backdropFilter: 'blur(8px)',
-        }}
         onClick={onClose}
+        style={{
+          position: 'absolute',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.8)',
+        }}
+      />
+
+      {/* MODAL */}
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'relative',
+          width: 380,
+          margin: '80px auto',
+          padding: 24,
+          borderRadius: 16,
+          background: '#111',
+          color: 'white',
+        }}
       >
-        {/* Modal Container */}
-        <div
-          className="relative w-full max-w-md animate-modal-in"
-          onClick={(e) => e.stopPropagation()}
-          style={{
-            backgroundColor: '#111111',
-            borderRadius: '20px',
-            padding: '32px',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 255, 204, 0.1)',
-            border: '1px solid rgba(0, 255, 204, 0.2)',
-          }}
-        >
-          {/* Close Button */}
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
-            style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            }}
-          >
-            <X className="w-5 h-5" style={{ color: '#94A3B8' }} />
-          </button>
+        {/* CLOSE */}
+        <button onClick={onClose} style={{ float: 'right' }}>
+          <X />
+        </button>
 
-          {/* LOGIN MODE */}
-          {mode === 'login' && (
-            <div>
-              {/* Title */}
-              <h2 className="text-3xl font-black mb-2" style={{ color: '#FFFFFF' }}>
-                Welcome back
-              </h2>
-              <p className="text-base mb-8" style={{ color: '#94A3B8' }}>
-                Login to join the round
-              </p>
+        {/* ERROR */}
+        {error && (
+          <p style={{ color: 'red', marginBottom: 10 }}>{error}</p>
+        )}
 
-              {/* Error Message */}
-              {error && (
-                <div
-                  className="mb-6 p-3 rounded-lg animate-shake"
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                  }}
-                >
-                  <p className="text-sm font-semibold" style={{ color: '#EF4444' }}>
-                    {error}
-                  </p>
-                </div>
-              )}
+        {/* LOGIN */}
+        {mode === 'login' && (
+          <form onSubmit={handleLogin}>
+            <h2>Login</h2>
 
-              {/* Login Form */}
-              <form onSubmit={handleLogin} className="space-y-5">
-                {/* Email/Username Input */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#CBD5E1' }}>
-                    Email or Username
-                  </label>
-                  <div className="relative">
-                    <Mail
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: '#64748B' }}
-                    />
-                    <input
-                      type="text"
-                      value={loginData.email}
-                      onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
-                      placeholder="Enter your email or username"
-                      required
-                      className="w-full pl-12 pr-4 py-4 rounded-xl text-base transition-all focus:outline-none focus-glow"
-                      style={{
-                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        color: '#FFFFFF',
-                      }}
-                    />
-                  </div>
-                </div>
+            <input
+              type="email"
+              placeholder="Email"
+              value={loginData.email}
+              onChange={(e) =>
+                setLoginData({ ...loginData, email: e.target.value })
+              }
+            />
 
-                {/* Password Input */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#CBD5E1' }}>
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: '#64748B' }}
-                    />
-                    <input
-                      type="password"
-                      value={loginData.password}
-                      onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
-                      placeholder="Enter your password"
-                      required
-                      className="w-full pl-12 pr-4 py-4 rounded-xl text-base transition-all focus:outline-none focus-glow"
-                      style={{
-                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        color: '#FFFFFF',
-                      }}
-                    />
-                  </div>
-                </div>
+            <input
+              type="password"
+              placeholder="Password"
+              value={loginData.password}
+              onChange={(e) =>
+                setLoginData({ ...loginData, password: e.target.value })
+              }
+            />
 
-                {/* Forgot Password */}
-                <div className="text-right">
-                  <button
-                    type="button"
-                    className="text-sm font-semibold transition-colors hover:opacity-80"
-                    style={{ color: '#00ffcc' }}
-                  >
-                    Forgot password?
-                  </button>
-                </div>
+            <button disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
+            </button>
 
-                {/* Login Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-4 rounded-xl font-black text-lg transition-all hover:scale-105 active:scale-95"
-                  style={{
-                    background: 'linear-gradient(135deg, #00ffcc 0%, #00d4aa 100%)',
-                    color: '#0B0F14',
-                    boxShadow: '0 10px 30px rgba(0, 255, 204, 0.4)',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {isLoading ? 'Logging in...' : 'Login & Join Round'}
-                </button>
-              </form>
+            <p onClick={switchMode} style={{ cursor: 'pointer' }}>
+              No account? Register
+            </p>
+          </form>
+        )}
 
-              {/* Register Link */}
-              <div className="mt-6 text-center">
-                <p className="text-sm" style={{ color: '#94A3B8' }}>
-                  Don't have an account?{' '}
-                  <button
-                    onClick={switchMode}
-                    className="font-bold transition-colors hover:opacity-80"
-                    style={{ color: '#00ffcc' }}
-                  >
-                    Register
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
+        {/* REGISTER */}
+        {mode === 'register' && (
+          <form onSubmit={handleRegister}>
+            <h2>Register</h2>
 
-          {/* REGISTER MODE */}
-          {mode === 'register' && (
-            <div>
-              {/* Title */}
-              <h2 className="text-3xl font-black mb-2" style={{ color: '#FFFFFF' }}>
-                Create account
-              </h2>
-              <p className="text-base mb-8" style={{ color: '#94A3B8' }}>
-                Start playing in seconds
-              </p>
+            <input
+              type="email"
+              placeholder="Email"
+              value={registerData.email}
+              onChange={(e) =>
+                setRegisterData({ ...registerData, email: e.target.value })
+              }
+            />
 
-              {/* Error Message */}
-              {error && (
-                <div
-                  className="mb-6 p-3 rounded-lg animate-shake"
-                  style={{
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                  }}
-                >
-                  <p className="text-sm font-semibold" style={{ color: '#EF4444' }}>
-                    {error}
-                  </p>
-                </div>
-              )}
+            <input
+              type="password"
+              placeholder="Password"
+              value={registerData.password}
+              onChange={(e) =>
+                setRegisterData({ ...registerData, password: e.target.value })
+              }
+            />
 
-              {/* Register Form */}
-              <form onSubmit={handleRegister} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                {/* Email Input */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#CBD5E1' }}>
-                    Email
-                  </label>
-                  <div className="relative">
-                    <Mail
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: '#64748B' }}
-                    />
-                    <input
-                      type="email"
-                      value={registerData.email}
-                      onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
-                      placeholder="Enter your email"
-                      required
-                      className="w-full pl-12 pr-4 py-3.5 rounded-xl text-base transition-all focus:outline-none focus-glow"
-                      style={{
-                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        color: '#FFFFFF',
-                      }}
-                    />
-                  </div>
-                </div>
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              value={registerData.confirmPassword}
+              onChange={(e) =>
+                setRegisterData({
+                  ...registerData,
+                  confirmPassword: e.target.value,
+                })
+              }
+            />
 
-                {/* Password Input */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#CBD5E1' }}>
-                    Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: '#64748B' }}
-                    />
-                    <input
-                      type="password"
-                      value={registerData.password}
-                      onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
-                      placeholder="Create a password"
-                      required
-                      className="w-full pl-12 pr-4 py-3.5 rounded-xl text-base transition-all focus:outline-none focus-glow"
-                      style={{
-                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        color: '#FFFFFF',
-                      }}
-                    />
-                  </div>
-                </div>
+            <button disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create Account"}
+            </button>
 
-                {/* Confirm Password Input */}
-                <div>
-                  <label className="block text-sm font-semibold mb-2" style={{ color: '#CBD5E1' }}>
-                    Confirm Password
-                  </label>
-                  <div className="relative">
-                    <Lock
-                      className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
-                      style={{ color: '#64748B' }}
-                    />
-                    <input
-                      type="password"
-                      value={registerData.confirmPassword}
-                      onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
-                      placeholder="Confirm your password"
-                      required
-                      className="w-full pl-12 pr-4 py-3.5 rounded-xl text-base transition-all focus:outline-none focus-glow"
-                      style={{
-                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
-                        border: '1px solid rgba(148, 163, 184, 0.2)',
-                        color: '#FFFFFF',
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Register Button */}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full py-4 rounded-xl font-black text-lg transition-all hover:scale-105 active:scale-95 mt-6"
-                  style={{
-                    background: 'linear-gradient(135deg, #00ffcc 0%, #00d4aa 100%)',
-                    color: '#0B0F14',
-                    boxShadow: '0 10px 30px rgba(0, 255, 204, 0.4)',
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  {isLoading ? 'Creating Account...' : 'Create Account & Join'}
-                </button>
-              </form>
-
-              {/* Login Link */}
-              <div className="mt-6 text-center">
-                <p className="text-sm" style={{ color: '#94A3B8' }}>
-                  Already have an account?{' '}
-                  <button
-                    onClick={switchMode}
-                    className="font-bold transition-colors hover:opacity-80"
-                    style={{ color: '#00ffcc' }}
-                  >
-                    Login
-                  </button>
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+            <p onClick={switchMode} style={{ cursor: 'pointer' }}>
+              Already have account? Login
+            </p>
+          </form>
+        )}
       </div>
-
-      {/* CSS Animations */}
-      <style>{`
-        @keyframes modal-in {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(20px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-        .animate-modal-in {
-          animation: modal-in 0.3s ease-out;
-        }
-
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-10px); }
-          75% { transform: translateX(10px); }
-        }
-        .animate-shake {
-          animation: shake 0.3s ease-in-out;
-        }
-
-        .focus-glow:focus {
-          border-color: rgba(0, 255, 204, 0.5) !important;
-          box-shadow: 0 0 0 3px rgba(0, 255, 204, 0.1), 0 0 20px rgba(0, 255, 204, 0.2) !important;
-        }
-
-        /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(30, 41, 59, 0.3);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(0, 255, 204, 0.3);
-          border-radius: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(0, 255, 204, 0.5);
-        }
-      `}</style>
-    </>
+    </div>
   );
 }
