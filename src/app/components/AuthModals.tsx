@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Mail, Lock } from 'lucide-react';
+import { X, Mail, Lock, User } from 'lucide-react';
 import { supabase } from "../../lib/supabase";
 
 interface AuthModalsProps {
@@ -22,20 +22,18 @@ export function AuthModals({
 
   const [loginData, setLoginData] = useState({
     email: '',
-    password: '',
+    password: ''
   });
 
   const [registerData, setRegisterData] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
+    confirmPassword: ''
   });
 
-  // ✅ LOGIN
+  // ✅ FIXED LOGIN (DO NOT CHANGE)
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    console.log("🔥 LOGIN CLICKED");
 
     setError('');
     setIsLoading(true);
@@ -46,7 +44,7 @@ export function AuthModals({
         password: loginData.password,
       });
 
-      console.log("🔥 SUPABASE LOGIN RESPONSE:", { data, error });
+      console.log("LOGIN RESPONSE:", { data, error });
 
       if (error) {
         setError(error.message);
@@ -74,7 +72,6 @@ export function AuthModals({
     }
   };
 
-  // ✅ REGISTER (basic working version)
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -92,8 +89,6 @@ export function AuthModals({
         email: registerData.email,
         password: registerData.password,
       });
-
-      console.log("🔥 REGISTER RESPONSE:", { data, error });
 
       if (error) {
         setError(error.message);
@@ -123,118 +118,217 @@ export function AuthModals({
   if (!show) return null;
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 50 }}>
+    <>
       {/* BACKDROP */}
       <div
+        className="fixed inset-0 z-50 flex items-center justify-center"
+        style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backdropFilter: 'blur(8px)',
+        }}
         onClick={onClose}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'rgba(0,0,0,0.8)',
-        }}
-      />
-
-      {/* MODAL */}
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          position: 'relative',
-          width: 380,
-          margin: '80px auto',
-          padding: 24,
-          borderRadius: 16,
-          background: '#111',
-          color: 'white',
-        }}
       >
-        {/* CLOSE */}
-        <button onClick={onClose} style={{ float: 'right' }}>
-          <X />
-        </button>
+        {/* MODAL */}
+        <div
+          className="relative w-full max-w-md animate-modal-in"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            backgroundColor: '#111111',
+            borderRadius: '20px',
+            padding: '32px',
+            border: '1px solid rgba(0, 255, 204, 0.2)',
+          }}
+        >
 
-        {/* ERROR */}
-        {error && (
-          <p style={{ color: 'red', marginBottom: 10 }}>{error}</p>
-        )}
+          {/* CLOSE BUTTON */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: 'rgba(255, 255, 255, 0.1)' }}
+          >
+            <X className="w-5 h-5" style={{ color: '#94A3B8' }} />
+          </button>
 
-        {/* LOGIN */}
-        {mode === 'login' && (
-          <form onSubmit={handleLogin}>
-            <h2>Login</h2>
+          {/* ERROR */}
+          {error && (
+            <div className="mb-4 text-red-400 text-sm">
+              {error}
+            </div>
+          )}
 
-            <input
-              type="email"
-              placeholder="Email"
-              value={loginData.email}
-              onChange={(e) =>
-                setLoginData({ ...loginData, email: e.target.value })
-              }
-            />
+          {/* LOGIN */}
+          {mode === 'login' && (
+            <div>
+              <h2 className="text-3xl font-black mb-2" style={{ color: '#fff' }}>
+                Welcome back
+              </h2>
 
-            <input
-              type="password"
-              placeholder="Password"
-              value={loginData.password}
-              onChange={(e) =>
-                setLoginData({ ...loginData, password: e.target.value })
-              }
-            />
+              <p className="text-base mb-8" style={{ color: '#94A3B8' }}>
+                Login to join the round
+              </p>
 
-            <button disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
-            </button>
+              <form onSubmit={handleLogin} className="space-y-5">
 
-            <p onClick={switchMode} style={{ cursor: 'pointer' }}>
-              No account? Register
-            </p>
-          </form>
-        )}
+                {/* EMAIL */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Email
+                  </label>
 
-        {/* REGISTER */}
-        {mode === 'register' && (
-          <form onSubmit={handleRegister}>
-            <h2>Register</h2>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                      style={{ color: '#64748B' }} />
 
-            <input
-              type="email"
-              placeholder="Email"
-              value={registerData.email}
-              onChange={(e) =>
-                setRegisterData({ ...registerData, email: e.target.value })
-              }
-            />
+                    <input
+                      type="email"
+                      value={loginData.email}
+                      onChange={(e) =>
+                        setLoginData({ ...loginData, email: e.target.value })
+                      }
+                      className="w-full pl-12 pr-4 py-4 rounded-xl"
+                      style={{
+                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                        color: '#fff',
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
 
-            <input
-              type="password"
-              placeholder="Password"
-              value={registerData.password}
-              onChange={(e) =>
-                setRegisterData({ ...registerData, password: e.target.value })
-              }
-            />
+                {/* PASSWORD */}
+                <div>
+                  <label className="block text-sm font-semibold mb-2">
+                    Password
+                  </label>
 
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              value={registerData.confirmPassword}
-              onChange={(e) =>
-                setRegisterData({
-                  ...registerData,
-                  confirmPassword: e.target.value,
-                })
-              }
-            />
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+                      style={{ color: '#64748B' }} />
 
-            <button disabled={isLoading}>
-              {isLoading ? "Creating..." : "Create Account"}
-            </button>
+                    <input
+                      type="password"
+                      value={loginData.password}
+                      onChange={(e) =>
+                        setLoginData({ ...loginData, password: e.target.value })
+                      }
+                      className="w-full pl-12 pr-4 py-4 rounded-xl"
+                      style={{
+                        backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                        color: '#fff',
+                      }}
+                      required
+                    />
+                  </div>
+                </div>
 
-            <p onClick={switchMode} style={{ cursor: 'pointer' }}>
-              Already have account? Login
-            </p>
-          </form>
-        )}
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-4 rounded-xl font-black"
+                  style={{
+                    background: 'linear-gradient(135deg, #00ffcc, #00b3ff)',
+                    color: '#000',
+                  }}
+                >
+                  {isLoading ? 'Logging in...' : 'Login & Join Round'}
+                </button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-gray-400">
+                No account?{' '}
+                <button onClick={switchMode} className="text-cyan-400 font-bold">
+                  Register
+                </button>
+              </p>
+            </div>
+          )}
+
+          {/* REGISTER */}
+          {mode === 'register' && (
+            <div>
+              <h2 className="text-3xl font-black mb-2" style={{ color: '#fff' }}>
+                Create account
+              </h2>
+
+              <p className="text-base mb-8" style={{ color: '#94A3B8' }}>
+                Start playing in seconds
+              </p>
+
+              <form onSubmit={handleRegister} className="space-y-5">
+
+                <input
+                  type="email"
+                  placeholder="Email"
+                  value={registerData.email}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, email: e.target.value })
+                  }
+                  className="w-full p-4 rounded-xl"
+                  style={{
+                    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                    color: '#fff',
+                  }}
+                  required
+                />
+
+                <input
+                  type="password"
+                  placeholder="Password"
+                  value={registerData.password}
+                  onChange={(e) =>
+                    setRegisterData({ ...registerData, password: e.target.value })
+                  }
+                  className="w-full p-4 rounded-xl"
+                  style={{
+                    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                    color: '#fff',
+                  }}
+                  required
+                />
+
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={registerData.confirmPassword}
+                  onChange={(e) =>
+                    setRegisterData({
+                      ...registerData,
+                      confirmPassword: e.target.value,
+                    })
+                  }
+                  className="w-full p-4 rounded-xl"
+                  style={{
+                    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+                    color: '#fff',
+                  }}
+                  required
+                />
+
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full py-4 rounded-xl font-black"
+                  style={{
+                    background: 'linear-gradient(135deg, #00ffcc, #00b3ff)',
+                    color: '#000',
+                  }}
+                >
+                  {isLoading ? 'Creating...' : 'Create Account'}
+                </button>
+              </form>
+
+              <p className="mt-6 text-center text-sm text-gray-400">
+                Already have an account?{' '}
+                <button onClick={switchMode} className="text-cyan-400 font-bold">
+                  Login
+                </button>
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
