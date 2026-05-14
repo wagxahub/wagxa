@@ -1,35 +1,31 @@
 import { createBrowserRouter } from "react-router-dom";
 import { Root } from "./pages/Root";
 
-// 🔐 AUTH PAGES
+// 🔐 AUTH
 import Login from "../pages/Login";
-import LoginTest from "../pages/LoginTest";
 
 // 📄 PAGES
 import { HomePage } from "./pages/HomePage";
 import { Dashboard } from "./pages/Dashboard";
+import { Wallet } from "./pages/Wallet";
 import { Game } from "./pages/Game";
 import { Predictions } from "./pages/Predictions";
 import { VIPTasks } from "./pages/VIPTasks";
 import { DailyRewards } from "./pages/DailyRewards";
 import { DailyRebate } from "./pages/DailyRebate";
-import { Wallet } from "./pages/Wallet";
 import { Referrals } from "./pages/Referrals";
 import { Profile } from "./pages/Profile";
 import { Upgrade } from "./pages/Upgrade";
 import { Settings } from "./pages/Settings";
 import { Notifications } from "./pages/Notifications";
 import { Leaderboard } from "./pages/Leaderboard";
-import { ReferralWallet } from "./pages/ReferralWallet";
-import { AdvertiserDashboard } from "./pages/AdvertiserDashboard";
-import { CreateCampaign } from "./pages/CreateCampaign";
-import { AdvertiseEarn } from "./pages/AdvertiseEarn";
+
 import { DicePool } from "./pages/DicePool";
 import { WheelGame } from "./pages/WheelGame";
-import { AffiliateWallet } from "./pages/AffiliateWallet";
 import { CrashGame } from "./pages/CrashGame";
 import { PvPWheel } from "./pages/PvPWheel";
 import PvPCoinFlip from "./pages/PvPCoinFlip";
+
 import WelcomeBonus from "./pages/WelcomeBonus";
 import BonusSuccess from "./pages/BonusSuccess";
 
@@ -39,20 +35,18 @@ export const router = createBrowserRouter([
     Component: Root,
 
     children: [
-      // 🧠 DEFAULT LANDING PAGE
+      // 🏠 LANDING PAGE
       { index: true, Component: HomePage },
 
-      // 🔐 AUTH ROUTES
+      // 🔐 AUTH
       { path: "login", Component: Login },
-      { path: "login-test", Component: LoginTest },
 
-      // 🟢 PUBLIC APP PAGES
-      { path: "home", Component: HomePage },
-
-      // 📊 MAIN APP PAGES
+      // 💰 MAIN DASHBOARD
+      { path: "wallet", Component: Wallet },
       { path: "dashboard", Component: Dashboard },
-      { path: "game", Component: Game },
 
+      // 🎮 GAME PAGES
+      { path: "game", Component: Game },
       { path: "dice-pool", Component: DicePool },
       { path: "wheel-game", Component: WheelGame },
       { path: "crash-game", Component: CrashGame },
@@ -60,34 +54,23 @@ export const router = createBrowserRouter([
       { path: "pvp-wheel", Component: PvPWheel },
       { path: "pvp-coinflip", Component: PvPCoinFlip },
 
-      // 🧠 GAME / SOCIAL FEATURES
+      // 🧠 FEATURES
       { path: "predictions", Component: Predictions },
       { path: "vip-tasks", Component: VIPTasks },
       { path: "daily-rewards", Component: DailyRewards },
       { path: "daily-rebate", Component: DailyRebate },
 
-      // 💰 WALLET / ACCOUNT
-      { path: "wallet", Component: Wallet },
+      // 👤 ACCOUNT
       { path: "referrals", Component: Referrals },
-      { path: "referral-wallet", Component: ReferralWallet },
-      { path: "affiliate-wallet", Component: AffiliateWallet },
-
-      // 🎁 BONUS FLOW (PUBLIC)
-      { path: "welcome-bonus", Component: WelcomeBonus },
-      { path: "bonus-success", Component: BonusSuccess },
-
-      // 👤 USER SETTINGS
       { path: "profile", Component: Profile },
       { path: "upgrade", Component: Upgrade },
       { path: "settings", Component: Settings },
-
       { path: "notifications", Component: Notifications },
       { path: "leaderboard", Component: Leaderboard },
 
-      // 📢 ADVERTISING
-      { path: "advertiser", Component: AdvertiserDashboard },
-      { path: "advertiser/create", Component: CreateCampaign },
-      { path: "advertiser/earn", Component: AdvertiseEarn },
+      // 🎁 BONUS FLOW
+      { path: "welcome-bonus", Component: WelcomeBonus },
+      { path: "bonus-success", Component: BonusSuccess },
     ],
   },
 ]);

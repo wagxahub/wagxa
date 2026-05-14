@@ -20,27 +20,31 @@ export default function Login() {
 
     setLoading(false);
 
+    // ❌ ERROR HANDLING
     if (error) {
       alert(error.message);
+      console.log("LOGIN ERROR:", error);
       return;
     }
 
-    // DEBUG (optional)
-    console.log("LOGIN SUCCESS:", data);
+    console.log("LOGIN DATA:", data);
 
-    // ✅ IMPORTANT: ensure session exists
-    if (!data.session) {
-      alert("No session created");
+    // ❌ NO SESSION = STOP
+    if (!data?.session) {
+      alert("Login failed: no session created");
       return;
     }
 
-    // ✅ redirect to wallet (dashboard)
-    navigate("/wallet");
+    // ✅ SUCCESS
+    alert("Login successful");
+
+    // ✅ SAFE REDIRECT
+    navigate("/wallet", { replace: true });
   };
 
   return (
-    <div style={containerStyle}>
-      <form onSubmit={handleLogin} style={formStyle}>
+    <div style={container}>
+      <form onSubmit={handleLogin} style={form}>
         <h2 style={{ textAlign: "center" }}>Login</h2>
 
         <input
@@ -48,7 +52,7 @@ export default function Login() {
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
+          style={input}
           required
         />
 
@@ -57,11 +61,11 @@ export default function Login() {
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
+          style={input}
           required
         />
 
-        <button type="submit" disabled={loading} style={buttonStyle}>
+        <button type="submit" disabled={loading} style={button}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
@@ -69,8 +73,8 @@ export default function Login() {
   );
 }
 
-/* styles */
-const containerStyle: React.CSSProperties = {
+/* STYLES */
+const container: React.CSSProperties = {
   minHeight: "100vh",
   display: "flex",
   alignItems: "center",
@@ -79,7 +83,7 @@ const containerStyle: React.CSSProperties = {
   color: "white",
 };
 
-const formStyle: React.CSSProperties = {
+const form: React.CSSProperties = {
   width: 320,
   padding: 24,
   borderRadius: 12,
@@ -89,16 +93,15 @@ const formStyle: React.CSSProperties = {
   gap: 12,
 };
 
-const inputStyle: React.CSSProperties = {
+const input: React.CSSProperties = {
   padding: 12,
   borderRadius: 8,
   border: "1px solid #333",
   background: "#000",
   color: "white",
-  outline: "none",
 };
 
-const buttonStyle: React.CSSProperties = {
+const button: React.CSSProperties = {
   padding: 12,
   borderRadius: 8,
   border: "none",
