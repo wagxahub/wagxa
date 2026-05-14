@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { X, Mail, Lock, User, Phone, MapPin } from 'lucide-react';
+import { supabase } from "../../lib/supabase";
 
 interface AuthModalsProps {
   show: boolean;
@@ -26,46 +27,47 @@ export function AuthModals({ show, onClose, initialMode = 'login', onSuccess }: 
     confirmPassword: ''
   });
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    // Simulate API call
-    setTimeout(() => {
+  setError('');
+  setIsLoading(true);
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: loginData.email,
+      password: loginData.password,
+    });
+
+    console.log("MODAL LOGIN:", { data, error });
+
+    if (error) {
+      setError(error.message);
       setIsLoading(false);
-      // Mock success
-      onClose();
-      if (onSuccess) onSuccess();
-    }, 1000);
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
-    // Validation
-    if (registerData.password !== registerData.confirmPassword) {
-      setError('Passwords do not match');
       return;
     }
 
-    if (registerData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (!data?.session) {
+      setError("No session created");
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
+    setIsLoading(false);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      // Mock success
-      onClose();
-      if (onSuccess) onSuccess();
-    }, 1000);
+    // ✅ CLOSE MODAL
+    onClose();
+
+    // ✅ REDIRECT
+    window.location.href = "/wallet";
+
+  } catch (err) {
+    console.log(err);
+    setError("Something went wrong");
+    setIsLoading(false);
+  }
+};
   };
-
   const switchMode = () => {
     setMode(mode === 'login' ? 'register' : 'login');
     setError('');
