@@ -10,35 +10,30 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      console.log("LOGIN RESPONSE:", { data, error });
+    setLoading(false);
 
-      setLoading(false);
+    console.log("LOGIN RESPONSE:", data, error);
 
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      if (!data?.session) {
-        alert("Login failed: no session created");
-        return;
-      }
-
-      alert("Login successful");
-
-      // 🔥 FORCE REDIRECT (bypass router issues)
-      window.location.href = "/wallet";
-    } catch (err) {
-      setLoading(false);
-      console.log("UNEXPECTED ERROR:", err);
-      alert("Something went wrong");
+    if (error) {
+      alert(error.message);
+      return;
     }
+
+    if (!data?.session) {
+      alert("No session created");
+      return;
+    }
+
+    // ✅ FORCE SESSION FLUSH (IMPORTANT FIX)
+    await new Promise((r) => setTimeout(r, 300));
+
+    // ✅ SAFE REDIRECT
+    window.location.assign("/wallet");
   };
 
   return (
@@ -72,12 +67,12 @@ export default function Login() {
   );
 }
 
-/* STYLES */
+/* styles */
 const container: React.CSSProperties = {
   minHeight: "100vh",
   display: "flex",
-  alignItems: "center",
   justifyContent: "center",
+  alignItems: "center",
   background: "#0b0b0b",
   color: "white",
 };
@@ -95,17 +90,16 @@ const form: React.CSSProperties = {
 const input: React.CSSProperties = {
   padding: 12,
   borderRadius: 8,
-  border: "1px solid #333",
   background: "#000",
   color: "white",
+  border: "1px solid #333",
 };
 
 const button: React.CSSProperties = {
   padding: 12,
   borderRadius: 8,
-  border: "none",
   background: "lime",
-  color: "black",
+  border: "none",
   fontWeight: "bold",
   cursor: "pointer",
 };
