@@ -13,7 +13,7 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -25,35 +25,22 @@ export default function Login() {
       return;
     }
 
-    alert("Login successful");
+    // DEBUG (optional)
+    console.log("LOGIN SUCCESS:", data);
 
-    // ✅ go to wallet (your dashboard)
+    // ✅ IMPORTANT: ensure session exists
+    if (!data.session) {
+      alert("No session created");
+      return;
+    }
+
+    // ✅ redirect to wallet (dashboard)
     navigate("/wallet");
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#0b0b0b",
-        color: "white",
-      }}
-    >
-      <form
-        onSubmit={handleLogin}
-        style={{
-          width: 320,
-          padding: 24,
-          borderRadius: 12,
-          background: "#151515",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
-      >
+    <div style={containerStyle}>
+      <form onSubmit={handleLogin} style={formStyle}>
         <h2 style={{ textAlign: "center" }}>Login</h2>
 
         <input
@@ -74,17 +61,33 @@ export default function Login() {
           required
         />
 
-        <button
-          type="submit"
-          disabled={loading}
-          style={buttonStyle}
-        >
+        <button type="submit" disabled={loading} style={buttonStyle}>
           {loading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
   );
 }
+
+/* styles */
+const containerStyle: React.CSSProperties = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  background: "#0b0b0b",
+  color: "white",
+};
+
+const formStyle: React.CSSProperties = {
+  width: 320,
+  padding: 24,
+  borderRadius: 12,
+  background: "#151515",
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+};
 
 const inputStyle: React.CSSProperties = {
   padding: 12,
