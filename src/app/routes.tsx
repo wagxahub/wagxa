@@ -1,7 +1,11 @@
 import { createBrowserRouter } from "react-router";
 import { Root } from "./pages/Root";
+
+// 🔐 AUTH PAGES
+import Login from "../pages/Login";
 import LoginTest from "../pages/LoginTest";
 
+// 📄 PAGES
 import { HomePage } from "./pages/HomePage";
 import { Dashboard } from "./pages/Dashboard";
 import { Game } from "./pages/Game";
@@ -35,9 +39,17 @@ export const router = createBrowserRouter([
     Component: Root,
 
     children: [
+      // 🧠 DEFAULT LANDING PAGE
       { index: true, Component: Wallet },
 
+      // 🔐 AUTH ROUTES
+      { path: "login", Component: Login },
+      { path: "login-test", Component: LoginTest },
+
+      // 🟢 PUBLIC APP PAGES
       { path: "home", Component: HomePage },
+
+      // 📊 MAIN APP PAGES
       { path: "dashboard", Component: Dashboard },
       { path: "game", Component: Game },
 
@@ -48,22 +60,23 @@ export const router = createBrowserRouter([
       { path: "pvp-wheel", Component: PvPWheel },
       { path: "pvp-coinflip", Component: PvPCoinFlip },
 
+      // 🧠 GAME / SOCIAL FEATURES
       { path: "predictions", Component: Predictions },
-
       { path: "vip-tasks", Component: VIPTasks },
-
       { path: "daily-rewards", Component: DailyRewards },
       { path: "daily-rebate", Component: DailyRebate },
 
+      // 💰 WALLET / ACCOUNT
       { path: "wallet", Component: Wallet },
-
-      { path: "welcome-bonus", Component: WelcomeBonus },
-      { path: "bonus-success", Component: BonusSuccess },
-
       { path: "referrals", Component: Referrals },
       { path: "referral-wallet", Component: ReferralWallet },
       { path: "affiliate-wallet", Component: AffiliateWallet },
 
+      // 🎁 BONUS FLOW (PUBLIC)
+      { path: "welcome-bonus", Component: WelcomeBonus },
+      { path: "bonus-success", Component: BonusSuccess },
+
+      // 👤 USER SETTINGS
       { path: "profile", Component: Profile },
       { path: "upgrade", Component: Upgrade },
       { path: "settings", Component: Settings },
@@ -71,12 +84,10 @@ export const router = createBrowserRouter([
       { path: "notifications", Component: Notifications },
       { path: "leaderboard", Component: Leaderboard },
 
+      // 📢 ADVERTISING
       { path: "advertiser", Component: AdvertiserDashboard },
       { path: "advertiser/create", Component: CreateCampaign },
       { path: "advertiser/earn", Component: AdvertiseEarn },
-
-      // ✅ SAFE TEST ROUTE
-      { path: "login-test", Component: LoginTest },
     ],
   },
 ]);

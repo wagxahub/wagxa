@@ -1,6 +1,9 @@
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
 export default function LoginTest() {
+  const navigate = useNavigate();
+
   const handleLogin = async () => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email: "test@example.com",
@@ -14,6 +17,9 @@ export default function LoginTest() {
       alert(error.message);
     } else {
       alert("Login successful");
+
+      // ✅ go to wallet
+      navigate("/wallet");
     }
   };
 
