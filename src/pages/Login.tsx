@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
 export default function Login() {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -13,39 +10,41 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    setLoading(false);
+      console.log("LOGIN RESPONSE:", { data, error });
 
-    // ❌ ERROR HANDLING
-    if (error) {
-      alert(error.message);
-      console.log("LOGIN ERROR:", error);
-      return;
+      setLoading(false);
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      if (!data?.session) {
+        alert("Login failed: no session created");
+        return;
+      }
+
+      alert("Login successful");
+
+      // 🔥 FORCE REDIRECT (bypass router issues)
+      window.location.href = "/wallet";
+    } catch (err) {
+      setLoading(false);
+      console.log("UNEXPECTED ERROR:", err);
+      alert("Something went wrong");
     }
-
-    console.log("LOGIN DATA:", data);
-
-    // ❌ NO SESSION = STOP
-    if (!data?.session) {
-      alert("Login failed: no session created");
-      return;
-    }
-
-    // ✅ SUCCESS
-    alert("Login successful");
-
-    // ✅ SAFE REDIRECT
-    navigate("/wallet", { replace: true });
   };
 
   return (
     <div style={container}>
       <form onSubmit={handleLogin} style={form}>
-        <h2 style={{ textAlign: "center" }}>Login</h2>
+        <h2>Login</h2>
 
         <input
           type="email"
