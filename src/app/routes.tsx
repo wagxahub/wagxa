@@ -40,7 +40,7 @@ export const router = createBrowserRouter([
 
     children: [
       // 🧠 DEFAULT LANDING PAGE
-      { index: true, Component: Wallet },
+      { index: true, Component: HomePage },
 
       // 🔐 AUTH ROUTES
       { path: "login", Component: Login },
