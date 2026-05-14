@@ -40,6 +40,7 @@ const handleLogin = async (e: React.FormEvent) => {
     });
 
     console.log("MODAL LOGIN:", { data, error });
+alert(JSON.stringify({ data, error }));
 
     if (error) {
       setError(error.message);
