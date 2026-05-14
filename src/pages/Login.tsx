@@ -10,6 +10,8 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
 
+    console.log("🔄 LOGIN ATTEMPT...");
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -17,29 +19,31 @@ export default function Login() {
 
     setLoading(false);
 
-    console.log("LOGIN RESPONSE:", data, error);
+    console.log("📦 LOGIN RESPONSE:", { data, error });
 
+    // ❌ ERROR CASE
     if (error) {
       alert(error.message);
       return;
     }
 
+    // ❌ NO SESSION CASE
     if (!data?.session) {
-      alert("No session created");
+      alert("Login failed: No session returned");
       return;
     }
 
-    // ✅ FORCE SESSION FLUSH (IMPORTANT FIX)
-    await new Promise((r) => setTimeout(r, 300));
+    // ✅ SUCCESS
+    alert("Login successful");
 
-    // ✅ SAFE REDIRECT
-    window.location.assign("/wallet");
+    // 🔥 FORCE NAVIGATION (most reliable in your setup)
+    window.location.href = "/wallet";
   };
 
   return (
     <div style={container}>
       <form onSubmit={handleLogin} style={form}>
-        <h2>Login</h2>
+        <h2 style={{ textAlign: "center" }}>Login</h2>
 
         <input
           type="email"
@@ -67,12 +71,12 @@ export default function Login() {
   );
 }
 
-/* styles */
+/* STYLES */
 const container: React.CSSProperties = {
   minHeight: "100vh",
   display: "flex",
-  justifyContent: "center",
   alignItems: "center",
+  justifyContent: "center",
   background: "#0b0b0b",
   color: "white",
 };
@@ -90,16 +94,18 @@ const form: React.CSSProperties = {
 const input: React.CSSProperties = {
   padding: 12,
   borderRadius: 8,
+  border: "1px solid #333",
   background: "#000",
   color: "white",
-  border: "1px solid #333",
+  outline: "none",
 };
 
 const button: React.CSSProperties = {
   padding: 12,
   borderRadius: 8,
-  background: "lime",
   border: "none",
+  background: "lime",
+  color: "black",
   fontWeight: "bold",
   cursor: "pointer",
 };
