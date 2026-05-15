@@ -1,0 +1,69 @@
+[33mf555fc73[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Fix wallet stability + prevent refresh loss
+[33ma8daf29c[m[33m ([m[1;31morigin/main[m[33m)[m Fix routing + wallet + build stability
+[33mefc42f87[m Fix router consistency and restore UI rendering
+[33m00a2f8e1[m Fix supabase import path for Vercel build
+[33m8e9f50ef[m Fix wallet persistence + auto-create wallet on login
+[33m48949e13[m fix: stable wallet system with safe supabase upsert
+[33m06e28f3d[m fix: persistent wallet balance + supabase wallet sync helper
+[33ma7221a92[m restore auth modal UI + fix login/register flow
+[33m42294d96[m fix auth modal login/register + supabase redirect
+[33m943fca70[m debug modal login
+[33mcf7fe3e8[m connect modal login to supabase
+[33m8b1b1fae[m fix auth structure + login redirect cleanup
+[33m9efa1e59[m fix login redirect + supabase session handling
+[33m340b0ca8[m fix login redirect to wallet + session handling
+[33m3ac7faf0[m fix login redirect with force navigation
+[33meaa6f1de[m fix auth flow, login redirect, routing setup
+[33m8c1324d4[m clean routing setup + login flow + wallet redirect
+[33me4a51df3[m fix landing page to HomePage
+[33mf074f39c[m auth system setup + routing + login pages
+[33mc4e27779[m fix project structure and supabase auth setup
+[33m9035bb63[m setup supabase backend connection
+[33mcb107be4[m cleanup ignored files
+[33m341a54a9[m sync project
+[33mf72c82a0[m Updated Wagxa files
+[33mb03de4fc[m Updated project files
+[33m4f2af3b0[m fix: broken placeholder import in LandingHeader
+[33m9636714a[m Update TopBar.tsx
+[33m9eb62b7e[m Rename 1000609262.png to Public/Image/1000609262.png
+[33mb843d089[m fix: replace missing logo import globally
+[33m36ceb0c0[m force rebuild trigger
+[33m7505423f[m force: trigger fresh vercel build
+[33m791f9fb9[m Update App.tsx
+[33ma20d78f8[m Update App.tsx
+[33m97d57908[m Update App.tsx
+[33ma2c7a6f9[m Update App.tsx
+[33m59ba9fea[m Update App.tsx
+[33m0eb359fc[m Update App.tsx
+[33m90980513[m Delete src/walletBlocker.ts
+[33mcc4955a7[m Update App.tsx
+[33m6f01d46b[m Update App.tsx
+[33m3f034a50[m Rename app.tsx to App.tsx
+[33m2c8856d0[m Rename app.tsk to app.tsx
+[33ma29b0a52[m Update app.tsk
+[33mfb273f49[m Rename walletBlocker.ts to src/walletBlocker.ts
+[33mbc9ebf45[m Rename walketBlocker.ts to walletBlocker.ts
+[33m1365e8f0[m Delete src/walletBlocker.ts
+[33m34576d7a[m Create walketBlocker.ts
+[33m0a4f08f9[m Update Header.tsx
+[33m4724983e[m Update app.tsk
+[33m705c9a3f[m Update Header.tsx
+[33mc596268e[m Update Header.tsx
+[33m1437a1e3[m Update Header.tsx
+[33mdc5363ef[m Rename App.tsk to app.tsk
+[33mc0dacb42[m Create App.tsk
+[33ma42cdb72[m Delete src/app/App.tsx
+[33m1ef63abd[m Update App.tsx
+[33m4ffbd23a[m Update App.tsx
+[33mddee8dfa[m Update App.tsx
+[33m0241078b[m Update App.tsx
+[33m06084b50[m Rename walletBlocker.ts to src/walletBlocker.ts
+[33mbce6096f[m Update App.tsx
+[33m480ceb3e[m Create vite.config.ts
+[33m440d1b66[m Delete vite.config.ts
+[33m8233ea2b[m Create main.tsx
+[33m2d1b4b96[m Create index.html
+[33m88fea3fa[m Create vercel.json
+[33mc7832f07[m Merge branch 'main' of https://github.com/ubongnsini/wagxia
+[33m576e7904[m Initial commit - Wagxa project
+[33m93f8b200[m Initial commit
