@@ -22,7 +22,21 @@ export function DepositModal({
 
   const walletAddress = '0xDEMO_WALLET_ADDRESS';
 
-  // TIMER (Binance style expiry)
+  // RESET
+  const reset = () => {
+    setStep('input');
+    setAmount('');
+    setTxHash('');
+    setTimer(600);
+  };
+
+  // CLOSE
+  const handleClose = () => {
+    onClose();
+    reset();
+  };
+
+  // TIMER
   useEffect(() => {
     if (step !== 'network') return;
 
@@ -45,9 +59,9 @@ export function DepositModal({
     return `${m}:${s.toString().padStart(2, '0')}`;
   };
 
-  const copy = (text: string, label?: string) => {
+  const copy = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success(label || 'Copied');
+    toast.success('Copied');
   };
 
   const continueDeposit = () => {
@@ -72,35 +86,42 @@ export function DepositModal({
 
   const finish = () => {
     onUSDTSuccess?.(parseFloat(amount));
-    onClose();
-    reset();
-  };
-
-  const reset = () => {
-    setStep('input');
-    setAmount('');
-    setTxHash('');
-    setTimer(600);
+    handleClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
 
-      <div className="w-full max-w-md rounded-2xl bg-[#0B0E11] border border-white/10 shadow-2xl">
+      <div className="w-full max-w-md rounded-2xl bg-[#0B0E11] border border-[#0A84FF]/20 shadow-[0_0_25px_rgba(10,132,255,0.15)] relative">
 
-        {/* HEADER (Binance style) */}
-        <div className="p-5 border-b border-white/10">
-          <h2 className="text-white text-lg font-semibold">
-            Deposit Crypto
-          </h2>
-          <p className="text-xs text-gray-400">
-            USDT (BEP20) Network only
-          </p>
+        {/* HEADER */}
+        <div className="p-5 border-b border-white/10 flex items-start justify-between">
+
+          <div>
+            <h2 className="text-white text-lg font-semibold">
+              Deposit Crypto
+            </h2>
+            <p className="text-xs text-gray-400">
+              USDT (BEP20) Network only
+            </p>
+          </div>
+
+          {/* CLOSE ICON */}
+          <button
+            onClick={handleClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full
+                       bg-[#161A1E] border border-white/10
+                       text-gray-400 hover:text-white hover:bg-[#1F2329]
+                       transition"
+          >
+            ✕
+          </button>
+
         </div>
 
-        {/* STEP 1 - INPUT */}
+        {/* INPUT */}
         {step === 'input' && (
           <div className="p-5">
 
@@ -121,35 +142,33 @@ export function DepositModal({
 
             <button
               onClick={continueDeposit}
-              className="w-full mt-4 p-3 rounded-lg bg-[#FCD535] text-black font-semibold"
+              className="w-full mt-4 p-3 rounded-lg bg-[#0A84FF] text-white font-medium"
             >
               Continue
             </button>
           </div>
         )}
 
-        {/* STEP 2 - NETWORK */}
+        {/* NETWORK */}
         {step === 'network' && (
           <div className="p-5">
 
             {/* TIMER */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between mb-4">
               <p className="text-sm text-gray-400">Send USDT</p>
-              <p className="text-[#FCD535] font-mono text-sm">
+              <p className="text-[#0A84FF] font-mono text-sm">
                 ⏱ {formatTime()}
               </p>
             </div>
 
-            {/* AMOUNT CARD */}
+            {/* AMOUNT */}
             <div className="bg-[#161A1E] p-3 rounded-lg mb-3 border border-white/10">
               <p className="text-xs text-gray-400">Amount</p>
-              <p className="text-lg text-white font-semibold">
-                {amount} USDT
-              </p>
+              <p className="text-white font-semibold text-lg">{amount} USDT</p>
 
               <button
-                onClick={() => copy(amount, 'Amount copied')}
-                className="text-xs text-[#FCD535] mt-1"
+                onClick={() => copy(amount)}
+                className="text-xs text-[#0A84FF] mt-1"
               >
                 Copy amount
               </button>
@@ -173,8 +192,8 @@ export function DepositModal({
                 </p>
 
                 <button
-                  onClick={() => copy(walletAddress, 'Address copied')}
-                  className="w-8 h-8 flex items-center justify-center rounded bg-[#FCD535] text-black"
+                  onClick={() => copy(walletAddress)}
+                  className="w-8 h-8 flex items-center justify-center rounded bg-[#0A84FF] text-white"
                 >
                   📋
                 </button>
@@ -184,20 +203,20 @@ export function DepositModal({
             {/* WARNING */}
             <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
               <p className="text-xs text-red-400">
-                ⚠ Send only USDT (BEP20). Wrong network may result in permanent loss.
+                ⚠ Wrong network or address may result in permanent loss of funds.
               </p>
             </div>
 
             <button
               onClick={() => setStep('confirm')}
-              className="w-full mt-4 p-3 bg-[#FCD535] text-black font-semibold rounded-lg"
+              className="w-full mt-4 p-3 bg-[#0A84FF] text-white font-medium rounded-lg"
             >
               I Have Sent Payment
             </button>
           </div>
         )}
 
-        {/* STEP 3 - CONFIRM */}
+        {/* CONFIRM */}
         {step === 'confirm' && (
           <div className="p-5">
 
@@ -213,12 +232,12 @@ export function DepositModal({
             />
 
             <p className="text-xs text-gray-500 mt-2">
-              You can find this in Binance / Trust Wallet
+              Find it in Binance / Wallet app
             </p>
 
             <button
               onClick={confirmTx}
-              className="w-full mt-4 p-3 bg-[#FCD535] text-black font-semibold rounded-lg"
+              className="w-full mt-4 p-3 bg-[#0A84FF] text-white font-medium rounded-lg"
             >
               Verify Deposit
             </button>
@@ -243,7 +262,7 @@ export function DepositModal({
 
             <button
               onClick={finish}
-              className="w-full mt-5 p-3 bg-green-500 text-black rounded-lg font-semibold"
+              className="w-full mt-5 p-3 bg-[#0A84FF] text-white rounded-lg font-medium"
             >
               Done
             </button>
@@ -258,7 +277,7 @@ export function DepositModal({
 
             <button
               onClick={reset}
-              className="w-full mt-4 p-3 bg-[#FCD535] text-black rounded-lg"
+              className="w-full mt-4 p-3 bg-[#0A84FF] text-white rounded-lg"
             >
               Try Again
             </button>
@@ -273,7 +292,7 @@ export function DepositModal({
 
             <button
               onClick={reset}
-              className="w-full mt-4 p-3 bg-[#FCD535] text-black rounded-lg"
+              className="w-full mt-4 p-3 bg-[#0A84FF] text-white rounded-lg"
             >
               New Deposit
             </button>
