@@ -1,6 +1,7 @@
 import { Menu, User, Bell, Eye, ArrowDown, ArrowUp, Gamepad2, ArrowRight, Gift, TrendingUp, DollarSign, Crown, Clock, ChevronRight, Sparkles, X } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useBonus } from '../context/BonusContext';
+import { useWallet } from '../context/WalletContext';     // ← Added
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { DepositModal } from '../components/DepositModal';
@@ -12,8 +13,36 @@ import { ResponsiveContainer } from '../components/ResponsiveContainer';
 import NoDepositBonusModal from '../components/NoDepositBonusModal';
 
 export function Wallet() {
-  const { gameBalance, usdtBalance, formatUSDT, balance, formatCurrency, isVIP, setBalance, setGameBalance, transactions: contextTransactions, addTransaction } = useUser();
-  const { bonusBalance, activeBonus, getBonusProgress, hasClaimedWelcomeBonus, hasClaimedNoDepositBonus } = useBonus();
+  const { 
+    gameBalance, 
+    usdtBalance, 
+    formatUSDT, 
+    balance, 
+    formatCurrency, 
+    isVIP, 
+    setBalance, 
+    setGameBalance, 
+    transactions: contextTransactions, 
+    addTransaction 
+  } = useUser();
+
+  const { 
+    bonusBalance, 
+    activeBonus, 
+    getBonusProgress, 
+    hasClaimedWelcomeBonus, 
+    hasClaimedNoDepositBonus 
+  } = useBonus();
+
+  // New Wallet Context (This fixes balance resetting on refresh)
+  const { 
+    balance: walletBalance, 
+    gameBalance: walletGameBalance, 
+    bonusBalance: walletBonusBalance, 
+    loading, 
+    refreshWallet 
+  } = useWallet();
+
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({ hours: 15, minutes: 17 });
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -28,8 +57,13 @@ export function Wallet() {
   const [rewardType, setRewardType] = useState<'cash' | 'vip1' | 'vip2' | 'vip3' | 'cashback'>('cash');
   const [isOpening, setIsOpening] = useState(false);
 
-  // Calculate total balance correctly: main balance + game balance + bonus balance
-  const totalBalance = balance + gameBalance + bonusBalance;
+  // Use WalletContext as primary source (fixes refresh reset)
+  const displayBalance = walletBalance || balance;
+  const displayGameBalance = walletGameBalance || gameBalance;
+  const displayBonusBalance = walletBonusBalance || bonusBalance;
+
+  // Calculate total balance
+  const totalBalance = displayBalance + displayGameBalance + displayBonusBalance;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -56,7 +90,6 @@ export function Wallet() {
       setIsGiftClaimed(true);
     }
 
-    // Calculate time until midnight (reset time)
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date(now);
@@ -87,11 +120,9 @@ export function Wallet() {
       return;
     }
 
-    // Open gift with animation
     setIsOpening(true);
     
     setTimeout(() => {
-      // Generate random reward with different types
       const rewardOptions = [
         { type: 'cash', value: 0.20, label: '$0.20 Cash Bonus' },
         { type: 'vip1', value: 0, label: 'VIP Level 1 Upgrade' },
@@ -108,12 +139,10 @@ export function Wallet() {
       setIsOpening(false);
       setShowRewardModal(true);
       
-      // Save claim to localStorage
       localStorage.setItem('lastGiftClaim', new Date().toDateString());
       
-      // Add cash reward to balance
       if (randomRewardData.value > 0) {
-        setGameBalance(gameBalance + randomRewardData.value);
+        setGameBalance(displayGameBalance + randomRewardData.value);
       }
     }, 1500);
   };
