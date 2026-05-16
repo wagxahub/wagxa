@@ -4,7 +4,7 @@ import React, {
   useState,
   ReactNode,
   useEffect,
-} from "react";
+} from 'react';
 
 interface UserContextType {
   balance: number;
@@ -12,218 +12,173 @@ interface UserContextType {
   usdtBalance: number;
   advertiseBalance: number;
   referralBalance: number;
+
   isVIP: boolean;
   vipLevel: 0 | 1 | 2 | 3;
   vipProgress: number;
+
   isAgeVerified: boolean;
   hasPin: boolean;
-  currencyPreference: "ngn" | "usd";
-  theme: "light" | "dark";
+
+  currencyPreference: 'ngn' | 'usd';
+  theme: 'light' | 'dark';
   exchangeRate: number;
 
-  userBankAccounts: Array<{
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-  }>;
+  userBankAccounts: any[];
+  userWallets: any[];
+  defaultBank: any;
+  defaultWallet: any;
+  transactions: any[];
 
-  userWallets: Array<{
-    address: string;
-    network: string;
-  }>;
+  setBalance: (v: number) => void;
+  setGameBalance: (v: number) => void;
+  setUsdtBalance: (v: number) => void;
+  setAdvertiseBalance: (v: number) => void;
+  setReferralBalance: (v: number) => void;
 
-  defaultBank: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-  } | null;
+  setDefaultBank: (b: any) => void;
+  setDefaultWallet: (w: any) => void;
 
-  defaultWallet: {
-    address: string;
-    network: string;
-  } | null;
+  setCurrencyPreference: (p: 'ngn' | 'usd') => void;
+  setTheme: (t: 'light' | 'dark') => void;
 
-  transactions: Array<{
-    id: string;
-    description: string;
-    amount: number;
-    date: string;
-    status: string;
-    icon: string;
-    type: "deposit" | "withdraw" | "transfer" | "game";
-  }>;
+  updateBalance: (a: number) => void;
 
-  setBalance: (balance: number) => void;
-  setGameBalance: (balance: number) => void;
-  setUsdtBalance: (balance: number) => void;
-  setAdvertiseBalance: (balance: number) => void;
-  setReferralBalance: (balance: number) => void;
+  addBankAccount: (b: any) => void;
+  addWallet: (w: any) => void;
+  addTransaction: (t: any) => void;
 
-  setIsVIP: (isVIP: boolean) => void;
-  setVipLevel: (level: 0 | 1 | 2 | 3) => void;
-  setVipProgress: (progress: number) => void;
-
-  setIsAgeVerified: (verified: boolean) => void;
-  setHasPin: (hasPin: boolean) => void;
-
-  setCurrencyPreference: (pref: "ngn" | "usd") => void;
-  setTheme: (theme: "light" | "dark") => void;
-
-  updateBalance: (amount: number) => void;
-  updateGameBalance: (amount: number) => void;
-  updateUsdtBalance: (amount: number) => void;
-  updateAdvertiseBalance: (amount: number) => void;
-  updateReferralBalance: (amount: number) => void;
-
-  addTransaction: (transaction: {
-    description: string;
-    amount: number;
-    status: string;
-    icon: string;
-    type: "deposit" | "withdraw" | "transfer" | "game";
-  }) => void;
-
-  formatCurrency: (amount: number, forceUSD?: boolean) => string;
-  formatUSDT: (amount: number) => string;
-  convertAmount: (amount: number, from: "ngn" | "usd") => number;
-
-  addBankAccount: (bank: {
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-  }) => void;
-
-  addWallet: (wallet: { address: string; network: string }) => void;
-
-  setDefaultBank: (
-    bank: {
-      bankName: string;
-      accountNumber: string;
-      accountName: string;
-    } | null
-  ) => void;
-
-  setDefaultWallet: (
-    wallet: { address: string; network: string } | null
-  ) => void;
+  formatCurrency: (a: number, forceUSD?: boolean) => string;
+  formatUSDT: (a: number) => string;
+  convertAmount: (a: number, from: 'ngn' | 'usd') => number;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [balance, setBalanceState] = useState(0);
-  const [gameBalance, setGameBalance] = useState(0);
-  const [usdtBalance, setUsdtBalance] = useState(0);
-  const [advertiseBalance, setAdvertiseBalance] = useState(0);
-  const [referralBalance, setReferralBalance] = useState(3500);
+  const [gameBalance, setGameBalanceState] = useState(0);
+  const [usdtBalance, setUsdtBalanceState] = useState(0);
+  const [advertiseBalance, setAdvertiseBalanceState] = useState(0);
+  const [referralBalance, setReferralBalanceState] = useState(3500);
 
-  const [isVIP, setIsVIP] = useState(false);
-  const [vipLevel, setVipLevelState] = useState<0 | 1 | 2 | 3>(0);
-  const [vipProgress, setVipProgress] = useState(0);
+  const [isVIP] = useState(false);
+  const [vipLevel] = useState<0 | 1 | 2 | 3>(0);
+  const [vipProgress] = useState(0);
 
-  const [isAgeVerified, setIsAgeVerified] = useState(false);
-  const [hasPin, setHasPin] = useState(false);
+  const [isAgeVerified] = useState(false);
+  const [hasPin] = useState(false);
 
   const [currencyPreference, setCurrencyPreferenceState] =
-    useState<"ngn" | "usd">("usd");
+    useState<'ngn' | 'usd'>('usd');
 
-  const [theme, setThemeState] = useState<"light" | "dark">("dark");
-  const [exchangeRate, setExchangeRate] = useState(1500);
+  const [theme, setThemeState] = useState<'light' | 'dark'>('dark');
+
+  const [exchangeRate] = useState(1500);
+
+  const [userBankAccounts, setUserBankAccounts] = useState<any[]>([]);
+  const [userWallets, setUserWallets] = useState<any[]>([]);
+  const [defaultBank, setDefaultBankState] = useState<any>(null);
+  const [defaultWallet, setDefaultWalletState] = useState<any>(null);
+  const [transactions, setTransactions] = useState<any[]>([]);
 
   const FIXED_RATE = 1400;
 
-  const [userBankAccounts, setUserBankAccounts] = useState<
-    Array<{ bankName: string; accountNumber: string; accountName: string }>
-  >([]);
+  // ================= BALANCE =================
+  const setBalance = (v: number) => setBalanceState(v);
+  const setGameBalance = (v: number) => setGameBalanceState(v);
+  const setUsdtBalance = (v: number) => setUsdtBalanceState(v);
+  const setAdvertiseBalance = (v: number) =>
+    setAdvertiseBalanceState(v);
+  const setReferralBalance = (v: number) =>
+    setReferralBalanceState(v);
 
-  const [userWallets, setUserWallets] = useState<
-    Array<{ address: string; network: string }>
-  >([]);
+  const updateBalance = (a: number) =>
+    setBalanceState(prev => prev + a);
 
-  const [defaultBank, setDefaultBank] = useState<{
-    bankName: string;
-    accountNumber: string;
-    accountName: string;
-  } | null>(null);
+  // ================= BANK / WALLET =================
+  const setDefaultBank = (b: any) => setDefaultBankState(b);
+  const setDefaultWallet = (w: any) => setDefaultWalletState(w);
 
-  const [defaultWallet, setDefaultWallet] = useState<{
-    address: string;
-    network: string;
-  } | null>(null);
+  const addBankAccount = (b: any) =>
+    setUserBankAccounts(prev => [...prev, b]);
 
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const addWallet = (w: any) =>
+    setUserWallets(prev => [...prev, w]);
 
-  const setVipLevel = (level: 0 | 1 | 2 | 3) => {
-    setVipLevelState(level);
-    setVipProgress(0);
+  // ================= TRANSACTIONS =================
+  const addTransaction = (t: any) => {
+    const now = new Date();
+    const date =
+      now.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+      }) +
+      ', ' +
+      now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+
+    setTransactions(prev => [
+      {
+        id: Math.random().toString(36).substr(2, 9),
+        ...t,
+        date,
+      },
+      ...prev,
+    ]);
   };
 
+  // ================= CURRENCY =================
+  const setCurrencyPreference = (p: 'ngn' | 'usd') =>
+    setCurrencyPreferenceState(p);
+
+  const convertAmount = (a: number, from: 'ngn' | 'usd') =>
+    from === 'ngn' ? a / FIXED_RATE : a * FIXED_RATE;
+
+  const formatCurrency = (a: number, forceUSD = false) => {
+    const v = Math.floor(a);
+    return currencyPreference === 'usd' || forceUSD
+      ? `$${v.toLocaleString()}`
+      : `₦${v.toLocaleString()}`;
+  };
+
+  const formatUSDT = (a: number) =>
+    `$${Math.floor(a).toLocaleString()}`;
+
+  // ================= THEME FIX (IMPORTANT) =================
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.add("dark");
-    root.classList.add("dark-theme");
-  }, []);
 
-  useEffect(() => {
-    const updateRate = () => {
-      const fluctuation = Math.random() * 50 - 25;
-      setExchangeRate(1500 + fluctuation);
-    };
-
-    const interval = setInterval(updateRate, 30000);
-    updateRate();
-    return () => clearInterval(interval);
-  }, []);
-
-  const setCurrencyPreference = (pref: "ngn" | "usd") => {
-    const prev = currencyPreference;
-    setCurrencyPreferenceState(pref);
-
-    if (prev === "usd" && pref === "ngn") {
-      setBalanceState((p) => p * FIXED_RATE);
-    } else if (prev === "ngn" && pref === "usd") {
-      setBalanceState((p) => p / FIXED_RATE);
+    if (theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.add('dark-theme');
+      root.classList.remove('light-theme');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light-theme');
+      root.classList.remove('dark-theme');
     }
-  };
+  }, [theme]);
 
-  const formatCurrency = (amount: number, forceUSD = false) => {
-    const val = Math.floor(amount);
-    if (currencyPreference === "usd" || forceUSD) {
-      return `$${val.toLocaleString()}`;
+  const setTheme = (t: 'light' | 'dark') => {
+    setThemeState(t);
+
+    const root = document.documentElement;
+
+    if (t === 'dark') {
+      root.classList.add('dark');
+      root.classList.add('dark-theme');
+      root.classList.remove('light-theme');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light-theme');
+      root.classList.remove('dark-theme');
     }
-    return `₦${val.toLocaleString()}`;
-  };
 
-  const formatUSDT = (amount: number) =>
-    `$${Math.floor(amount).toLocaleString()}`;
-
-  const convertAmount = (amount: number, from: "ngn" | "usd") => {
-    return from === "ngn" ? amount / exchangeRate : amount * exchangeRate;
-  };
-
-  const updateBalance = (v: number) => setBalanceState((p) => p + v);
-  const updateGameBalance = (v: number) => setGameBalance((p) => p + v);
-  const updateUsdtBalance = (v: number) => setUsdtBalance((p) => p + v);
-  const updateAdvertiseBalance = (v: number) =>
-    setAdvertiseBalance((p) => p + v);
-  const updateReferralBalance = (v: number) =>
-    setReferralBalance((p) => p + v);
-
-  const addBankAccount = (bank: any) =>
-    setUserBankAccounts((p) => [...p, bank]);
-
-  const addWallet = (wallet: any) =>
-    setUserWallets((p) => [...p, wallet]);
-
-  const addTransaction = (tx: any) => {
-    setTransactions((p) => [
-      {
-        id: Date.now().toString(),
-        ...tx,
-        date: new Date().toLocaleString(),
-      },
-      ...p,
-    ]);
+    localStorage.setItem('theme', t);
   };
 
   return (
@@ -234,11 +189,14 @@ export function UserProvider({ children }: { children: ReactNode }) {
         usdtBalance,
         advertiseBalance,
         referralBalance,
+
         isVIP,
         vipLevel,
         vipProgress,
+
         isAgeVerified,
         hasPin,
+
         currencyPreference,
         theme,
         exchangeRate,
@@ -249,36 +207,27 @@ export function UserProvider({ children }: { children: ReactNode }) {
         defaultWallet,
         transactions,
 
-        setBalance: setBalanceState,
+        setBalance,
         setGameBalance,
         setUsdtBalance,
         setAdvertiseBalance,
         setReferralBalance,
 
-        setIsVIP,
-        setVipLevel,
-        setVipProgress,
-        setIsAgeVerified,
-        setHasPin,
+        setDefaultBank,
+        setDefaultWallet,
 
         setCurrencyPreference,
-        setTheme: setThemeState,
+        setTheme,
 
         updateBalance,
-        updateGameBalance,
-        updateUsdtBalance,
-        updateAdvertiseBalance,
-        updateReferralBalance,
-
-        addTransaction,
-        formatCurrency,
-        formatUSDT,
-        convertAmount,
 
         addBankAccount,
         addWallet,
-        setDefaultBank,
-        setDefaultWallet,
+        addTransaction,
+
+        formatCurrency,
+        formatUSDT,
+        convertAmount,
       }}
     >
       {children}
@@ -287,9 +236,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
 }
 
 export function useUser() {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUser must be used within a UserProvider");
-  }
-  return context;
+  const ctx = useContext(UserContext);
+  if (!ctx)
+    throw new Error('useUser must be used within UserProvider');
+  return ctx;
 }

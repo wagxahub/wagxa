@@ -7,56 +7,49 @@ interface DepositModalProps {
   onUSDTSuccess?: (amount: number) => void;
 }
 
-type Step = 'input' | 'network' | 'confirm' | 'success' | 'error' | 'expired';
+export function DepositModal({ isOpen, onClose, onUSDTSuccess }: DepositModalProps) {
+  // ONLY USDT FLOW (NO NAIRA)
+  const [step, setStep] = useState<'input' | 'send' | 'hash' | 'verifying' | 'success' | 'error' | 'expired'>('input');
 
-export function DepositModal({
-  isOpen,
-  onClose,
-  onUSDTSuccess
-}: DepositModalProps) {
-
-  const [step, setStep] = useState<Step>('input');
   const [amount, setAmount] = useState('');
   const [txHash, setTxHash] = useState('');
+  const [error, setError] = useState('');
   const [timer, setTimer] = useState(600);
 
-  const walletAddress = '0xDEMO_WALLET_ADDRESS';
-
-  // RESET
-  const reset = () => {
-    setStep('input');
-    setAmount('');
-    setTxHash('');
-    setTimer(600);
-  };
-
-  // CLOSE
-  const handleClose = () => {
-    onClose();
-    reset();
-  };
+  const walletAddress = '0xA7f92Ks8d2F3m9Lp4Hj7Nk5Qr6Ts8Vw3Xy9Z93Kd';
 
   // TIMER
   useEffect(() => {
-    if (step !== 'network') return;
+    if (step === 'send' && timer > 0) {
+      const interval = setInterval(() => {
+        setTimer(prev => {
+          if (prev <= 1) {
+            setStep('expired');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
 
-    const interval = setInterval(() => {
-      setTimer(prev => {
-        if (prev <= 1) {
-          setStep('expired');
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [step]);
+      return () => clearInterval(interval);
+    }
+  }, [step, timer]);
 
   const formatTime = () => {
     const m = Math.floor(timer / 60);
     const s = timer % 60;
-    return `${m}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
+
+  const handleGenerate = () => {
+    const amt = parseFloat(amount);
+    if (!amt || amt < 5) {
+      setError('Minimum 5 USDT');
+      return;
+    }
+    setError('');
+    setTimer(600);
+    setStep('send');
   };
 
   const copy = (text: string) => {
@@ -64,220 +57,184 @@ export function DepositModal({
     toast.success('Copied');
   };
 
-  const continueDeposit = () => {
-    const val = parseFloat(amount);
-    if (!val || val < 5) return toast.error('Minimum is $5');
-
-    setStep('network');
-    setTimer(600);
-  };
-
-  const confirmTx = () => {
+  const handleVerify = () => {
     if (!txHash || txHash.length < 10) {
-      return toast.error('Invalid Tx Hash');
+      setError('Invalid transaction hash');
+      return;
     }
 
-    setStep('confirm');
+    setError('');
+    setStep('verifying');
 
     setTimeout(() => {
       Math.random() > 0.2 ? setStep('success') : setStep('error');
-    }, 2000);
+    }, 2500);
   };
 
-  const finish = () => {
+  const handleSuccess = () => {
     onUSDTSuccess?.(parseFloat(amount));
-    handleClose();
+    onClose();
+    reset();
+  };
+
+  const reset = () => {
+    setStep('input');
+    setAmount('');
+    setTxHash('');
+    setError('');
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
+      <div className="w-full max-w-md rounded-2xl shadow-xl bg-[#0B0F19] border border-white/10">
 
-      <div className="w-full max-w-md rounded-2xl bg-[#0B0E11] border border-[#0A84FF]/20 shadow-[0_0_25px_rgba(10,132,255,0.15)] relative">
-
-        {/* HEADER */}
-        <div className="p-5 border-b border-white/10 flex items-start justify-between">
-
-          <div>
-            <h2 className="text-white text-lg font-semibold">
-              Deposit Crypto
-            </h2>
-            <p className="text-xs text-gray-400">
-              USDT (BEP20) Network only
-            </p>
+        {/* HEADER (Binance style minimal) */}
+        <div className="p-5 border-b border-white/10 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
+              ₮
+            </div>
+            <h2 className="text-white font-semibold">USDT Deposit</h2>
           </div>
 
-          {/* CLOSE ICON */}
-          <button
-            onClick={handleClose}
-            className="w-8 h-8 flex items-center justify-center rounded-full
-                       bg-[#161A1E] border border-white/10
-                       text-gray-400 hover:text-white hover:bg-[#1F2329]
-                       transition"
-          >
-            ✕
-          </button>
-
+          <button onClick={onClose} className="text-white/60 hover:text-white">✕</button>
         </div>
 
-        {/* INPUT */}
+        {/* STEP 1 */}
         {step === 'input' && (
-          <div className="p-5">
-
-            <label className="text-xs text-gray-400">
-              Amount (USDT)
-            </label>
+          <div className="p-5 space-y-4">
+            <p className="text-white/60 text-sm">Enter amount to deposit</p>
 
             <input
+              type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              className="w-full mt-2 p-3 rounded-lg bg-[#161A1E] text-white border border-white/10"
+              onChange={(e) => {
+                setAmount(e.target.value);
+                setError('');
+              }}
+              placeholder="0.00 USDT"
+              className="w-full p-3 rounded-lg bg-[#111827] text-white border border-white/10"
             />
 
-            <p className="text-xs text-gray-500 mt-2">
-              Minimum deposit: $5
-            </p>
+            {error && <p className="text-red-400 text-xs">{error}</p>}
+
+            <div className="text-xs text-white/50">
+              Min deposit: 5 USDT
+            </div>
 
             <button
-              onClick={continueDeposit}
-              className="w-full mt-4 p-3 rounded-lg bg-[#0A84FF] text-white font-medium"
+              onClick={handleGenerate}
+              className="w-full py-3 rounded-lg bg-blue-500 text-white font-medium"
             >
               Continue
             </button>
           </div>
         )}
 
-        {/* NETWORK */}
-        {step === 'network' && (
-          <div className="p-5">
+        {/* STEP 2 - SEND */}
+        {step === 'send' && (
+          <div className="p-5 space-y-4">
 
-            {/* TIMER */}
-            <div className="flex justify-between mb-4">
-              <p className="text-sm text-gray-400">Send USDT</p>
-              <p className="text-[#0A84FF] font-mono text-sm">
-                ⏱ {formatTime()}
-              </p>
+            <div className="flex justify-between text-xs text-white/50">
+              <span>Send USDT (BEP20)</span>
+              <span className="text-blue-400 font-bold">{formatTime()}</span>
             </div>
 
-            {/* AMOUNT */}
-            <div className="bg-[#161A1E] p-3 rounded-lg mb-3 border border-white/10">
-              <p className="text-xs text-gray-400">Amount</p>
-              <p className="text-white font-semibold text-lg">{amount} USDT</p>
+            <div className="bg-[#111827] p-4 rounded-lg space-y-2 border border-white/10">
+
+              <div className="text-xs text-white/50">Amount</div>
+              <div className="text-blue-400 font-bold text-lg">
+                {amount} USDT
+              </div>
 
               <button
                 onClick={() => copy(amount)}
-                className="text-xs text-[#0A84FF] mt-1"
+                className="text-xs text-blue-400"
               >
-                Copy amount
+                Copy Amount
+              </button>
+
+              <hr className="border-white/10 my-2" />
+
+              <div className="text-xs text-white/50">Wallet</div>
+              <div className="text-white text-xs break-all">
+                {walletAddress}
+              </div>
+
+              <button
+                onClick={() => copy(walletAddress)}
+                className="text-xs text-blue-400"
+              >
+                Copy Address
               </button>
             </div>
 
-            {/* NETWORK */}
-            <div className="bg-[#161A1E] p-3 rounded-lg mb-3 border border-white/10">
-              <p className="text-xs text-gray-400">Network</p>
-              <p className="text-white">BSC (BEP20)</p>
-            </div>
-
-            {/* WALLET */}
-            <div className="bg-[#161A1E] p-3 rounded-lg border border-white/10">
-              <p className="text-xs text-gray-400 mb-1">
-                Wallet Address
-              </p>
-
-              <div className="flex justify-between items-center gap-2">
-                <p className="text-xs text-white break-all">
-                  {walletAddress}
-                </p>
-
-                <button
-                  onClick={() => copy(walletAddress)}
-                  className="w-8 h-8 flex items-center justify-center rounded bg-[#0A84FF] text-white"
-                >
-                  📋
-                </button>
-              </div>
-            </div>
-
-            {/* WARNING */}
-            <div className="mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
-              <p className="text-xs text-red-400">
-                ⚠ Wrong network or address may result in permanent loss of funds.
-              </p>
-            </div>
-
             <button
-              onClick={() => setStep('confirm')}
-              className="w-full mt-4 p-3 bg-[#0A84FF] text-white font-medium rounded-lg"
+              onClick={() => setStep('hash')}
+              className="w-full py-3 rounded-lg bg-blue-500 text-white"
             >
-              I Have Sent Payment
+              I have sent payment
             </button>
           </div>
         )}
 
-        {/* CONFIRM */}
-        {step === 'confirm' && (
-          <div className="p-5">
-
-            <label className="text-xs text-gray-400">
-              Transaction Hash
-            </label>
+        {/* STEP 3 - HASH */}
+        {step === 'hash' && (
+          <div className="p-5 space-y-4">
 
             <input
               value={txHash}
               onChange={(e) => setTxHash(e.target.value)}
-              placeholder="Paste TxID"
-              className="w-full mt-2 p-3 bg-[#161A1E] text-white rounded-lg border border-white/10"
+              placeholder="Enter transaction hash"
+              className="w-full p-3 rounded-lg bg-[#111827] text-white border border-white/10"
             />
 
-            <p className="text-xs text-gray-500 mt-2">
-              Find it in Binance / Wallet app
-            </p>
+            {error && <p className="text-red-400 text-xs">{error}</p>}
 
             <button
-              onClick={confirmTx}
-              className="w-full mt-4 p-3 bg-[#0A84FF] text-white font-medium rounded-lg"
+              onClick={handleVerify}
+              className="w-full py-3 rounded-lg bg-blue-500 text-white"
             >
-              Verify Deposit
+              Verify
             </button>
+          </div>
+        )}
+
+        {/* VERIFY */}
+        {step === 'verifying' && (
+          <div className="p-10 text-center text-white">
+            <div className="animate-spin w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
+            Verifying transaction...
           </div>
         )}
 
         {/* SUCCESS */}
         {step === 'success' && (
-          <div className="p-8 text-center">
-
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-green-500/10 flex items-center justify-center">
-              <span className="text-green-400 text-3xl">✓</span>
-            </div>
-
-            <h2 className="text-green-400 font-semibold">
-              Deposit Successful
-            </h2>
-
-            <p className="text-white text-lg mt-2">
-              +{amount} USDT
-            </p>
+          <div className="p-10 text-center space-y-4 text-white">
+            <div className="text-4xl text-blue-400">✓</div>
+            <div className="text-green-400 font-bold">Deposit Successful</div>
+            <div>{amount} USDT</div>
 
             <button
-              onClick={finish}
-              className="w-full mt-5 p-3 bg-[#0A84FF] text-white rounded-lg font-medium"
+              onClick={handleSuccess}
+              className="w-full py-3 rounded-lg bg-blue-500"
             >
-              Done
+              Continue
             </button>
           </div>
         )}
 
         {/* ERROR */}
         {step === 'error' && (
-          <div className="p-6 text-center">
-
-            <h2 className="text-red-400">Transaction Failed</h2>
+          <div className="p-10 text-center space-y-4 text-white">
+            <div className="text-red-400 text-3xl">✕</div>
+            <div>Transaction not found</div>
 
             <button
-              onClick={reset}
-              className="w-full mt-4 p-3 bg-[#0A84FF] text-white rounded-lg"
+              onClick={() => setStep('hash')}
+              className="w-full py-3 rounded-lg bg-blue-500"
             >
               Try Again
             </button>
@@ -286,15 +243,14 @@ export function DepositModal({
 
         {/* EXPIRED */}
         {step === 'expired' && (
-          <div className="p-6 text-center">
-
-            <h2 className="text-red-400">Session Expired</h2>
+          <div className="p-10 text-center text-white space-y-4">
+            <div className="text-red-400">Session expired</div>
 
             <button
               onClick={reset}
-              className="w-full mt-4 p-3 bg-[#0A84FF] text-white rounded-lg"
+              className="w-full py-3 rounded-lg bg-blue-500"
             >
-              New Deposit
+              Restart
             </button>
           </div>
         )}
