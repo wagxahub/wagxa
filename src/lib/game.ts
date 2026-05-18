@@ -1,6 +1,11 @@
 import { supabase } from './supabase'
 
 export async function createGame(userId: string, amount: number) {
+  if (!supabase) {
+    console.error('Supabase is not configured')
+    return null
+  }
+
   const { data, error } = await supabase
     .from('games')
     .insert({

@@ -1,7 +1,6 @@
 import { Menu, User, Bell, Eye, ArrowDown, ArrowUp, Gamepad2, ArrowRight, Gift, TrendingUp, DollarSign, Crown, Clock, ChevronRight, Sparkles, X } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { useBonus } from '../context/BonusContext';
-import { useWallet } from '../context/WalletContext';     // ← Added
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { DepositModal } from '../components/DepositModal';
@@ -13,36 +12,8 @@ import { ResponsiveContainer } from '../components/ResponsiveContainer';
 import NoDepositBonusModal from '../components/NoDepositBonusModal';
 
 export function Wallet() {
-  const { 
-    gameBalance, 
-    usdtBalance, 
-    formatUSDT, 
-    balance, 
-    formatCurrency, 
-    isVIP, 
-    setBalance, 
-    setGameBalance, 
-    transactions: contextTransactions, 
-    addTransaction 
-  } = useUser();
-
-  const { 
-    bonusBalance, 
-    activeBonus, 
-    getBonusProgress, 
-    hasClaimedWelcomeBonus, 
-    hasClaimedNoDepositBonus 
-  } = useBonus();
-
-  // New Wallet Context (This fixes balance resetting on refresh)
-  const { 
-    balance: walletBalance, 
-    gameBalance: walletGameBalance, 
-    bonusBalance: walletBonusBalance, 
-    loading, 
-    refreshWallet 
-  } = useWallet();
-
+  const { gameBalance, usdtBalance, formatUSDT, balance, formatCurrency, isVIP, updateBalance, updateGameBalance, updateUsdtBalance, transactions: contextTransactions, addTransaction } = useUser();
+  const { bonusBalance, activeBonus, getBonusProgress, hasClaimedWelcomeBonus, hasClaimedNoDepositBonus } = useBonus();
   const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({ hours: 15, minutes: 17 });
   const [showDepositModal, setShowDepositModal] = useState(false);
@@ -57,13 +28,8 @@ export function Wallet() {
   const [rewardType, setRewardType] = useState<'cash' | 'vip1' | 'vip2' | 'vip3' | 'cashback'>('cash');
   const [isOpening, setIsOpening] = useState(false);
 
-  // Use WalletContext as primary source (fixes refresh reset)
-  const displayBalance = walletBalance || balance;
-  const displayGameBalance = walletGameBalance || gameBalance;
-  const displayBonusBalance = walletBonusBalance || bonusBalance;
-
-  // Calculate total balance
-  const totalBalance = displayBalance + displayGameBalance + displayBonusBalance;
+  // Calculate total balance correctly: main balance + game balance + bonus balance
+  const totalBalance = balance + gameBalance + bonusBalance;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -90,6 +56,7 @@ export function Wallet() {
       setIsGiftClaimed(true);
     }
 
+    // Calculate time until midnight (reset time)
     const updateTimer = () => {
       const now = new Date();
       const tomorrow = new Date(now);
@@ -120,9 +87,11 @@ export function Wallet() {
       return;
     }
 
+    // Open gift with animation
     setIsOpening(true);
     
     setTimeout(() => {
+      // Generate random reward with different types
       const rewardOptions = [
         { type: 'cash', value: 0.20, label: '$0.20 Cash Bonus' },
         { type: 'vip1', value: 0, label: 'VIP Level 1 Upgrade' },
@@ -139,10 +108,12 @@ export function Wallet() {
       setIsOpening(false);
       setShowRewardModal(true);
       
+      // Save claim to localStorage
       localStorage.setItem('lastGiftClaim', new Date().toDateString());
       
+      // Add cash reward to balance
       if (randomRewardData.value > 0) {
-        setGameBalance(displayGameBalance + randomRewardData.value);
+        setGameBalance(gameBalance + randomRewardData.value);
       }
     }, 1500);
   };
@@ -657,18 +628,7 @@ export function Wallet() {
         isOpen={showDepositModal}
         onClose={() => setShowDepositModal(false)}
         onSuccess={(amount) => {
-          setBalance(balance + amount);
-          addTransaction({
-            description: 'Deposit - Naira',
-            amount: amount,
-            status: 'Completed',
-            icon: 'deposit',
-            type: 'deposit',
-          });
-          toast.success(`Deposited successfully!`);
-        }}
-        onUSDTSuccess={(amount) => {
-          setGameBalance(gameBalance + amount);
+          updateBalance(amount);
           addTransaction({
             description: 'Deposit - USDT',
             amount: amount,
@@ -684,26 +644,15 @@ export function Wallet() {
       <WithdrawModal
         isOpen={showWithdrawModal}
         onClose={() => setShowWithdrawModal(false)}
-        onSuccess={(amount, type) => {
-          if (type === 'naira') {
-            setBalance(balance - amount);
-            addTransaction({
-              description: 'Withdraw - Naira',
-              amount: -amount,
-              status: 'Processing',
-              icon: 'withdraw',
-              type: 'withdraw',
-            });
-          } else {
-            setGameBalance(gameBalance - amount);
-            addTransaction({
-              description: 'Withdraw - USDT',
-              amount: -amount,
-              status: 'Processing',
-              icon: 'withdraw',
-              type: 'withdraw',
-            });
-          }
+        onSuccess={(amount) => {
+          updateUsdtBalance(-amount);
+          addTransaction({
+            description: 'Withdraw - USDT',
+            amount: -amount,
+            status: 'Processing',
+            icon: 'withdraw',
+            type: 'withdraw',
+          });
           toast.success(`Withdrawal initiated successfully!`);
         }}
       />
@@ -714,8 +663,8 @@ export function Wallet() {
         onClose={() => setShowTransferToGameModal(false)}
         direction="toGame"
         onSuccess={(amount) => {
-          setBalance(balance - amount);
-          setGameBalance(gameBalance + amount);
+          updateBalance(-amount);
+          updateGameBalance(amount);
           addTransaction({
             description: 'Transfer to Game',
             amount: -amount,
@@ -732,8 +681,8 @@ export function Wallet() {
         onClose={() => setShowTransferFromGameModal(false)}
         direction="toMain"
         onSuccess={(amount) => {
-          setBalance(balance + amount);
-          setGameBalance(gameBalance - amount);
+          updateBalance(amount);
+          updateGameBalance(-amount);
           addTransaction({
             description: 'Transfer from Game',
             amount: amount,

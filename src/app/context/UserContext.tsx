@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 interface UserContextType {
   balance: number;
@@ -12,173 +6,244 @@ interface UserContextType {
   usdtBalance: number;
   advertiseBalance: number;
   referralBalance: number;
-
   isVIP: boolean;
   vipLevel: 0 | 1 | 2 | 3;
-  vipProgress: number;
-
+  vipProgress: number; // Progress to next level (0-100)
   isAgeVerified: boolean;
   hasPin: boolean;
-
-  currencyPreference: 'ngn' | 'usd';
   theme: 'light' | 'dark';
-  exchangeRate: number;
-
-  userBankAccounts: any[];
-  userWallets: any[];
-  defaultBank: any;
-  defaultWallet: any;
-  transactions: any[];
-
-  setBalance: (v: number) => void;
-  setGameBalance: (v: number) => void;
-  setUsdtBalance: (v: number) => void;
-  setAdvertiseBalance: (v: number) => void;
-  setReferralBalance: (v: number) => void;
-
-  setDefaultBank: (b: any) => void;
-  setDefaultWallet: (w: any) => void;
-
-  setCurrencyPreference: (p: 'ngn' | 'usd') => void;
-  setTheme: (t: 'light' | 'dark') => void;
-
-  updateBalance: (a: number) => void;
-
-  addBankAccount: (b: any) => void;
-  addWallet: (w: any) => void;
-  addTransaction: (t: any) => void;
-
-  formatCurrency: (a: number, forceUSD?: boolean) => string;
-  formatUSDT: (a: number) => string;
-  convertAmount: (a: number, from: 'ngn' | 'usd') => number;
+  userWallets: Array<{ address: string; network: string }>;
+  defaultWallet: { address: string; network: string } | null;
+  transactions: Array<{
+    id: string;
+    description: string;
+    amount: number;
+    date: string;
+    status: string;
+    icon: string;
+    type: 'deposit' | 'withdraw' | 'transfer' | 'game';
+  }>;
+  setBalance: (balance: number) => void;
+  setGameBalance: (balance: number) => void;
+  setUsdtBalance: (balance: number) => void;
+  setAdvertiseBalance: (balance: number) => void;
+  setReferralBalance: (balance: number) => void;
+  setIsVIP: (isVIP: boolean) => void;
+  setVipLevel: (level: 0 | 1 | 2 | 3) => void;
+  setVipProgress: (progress: number) => void;
+  setIsAgeVerified: (verified: boolean) => void;
+  setHasPin: (hasPin: boolean) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+  updateBalance: (amount: number) => void;
+  updateGameBalance: (amount: number) => void;
+  updateUsdtBalance: (amount: number) => void;
+  updateAdvertiseBalance: (amount: number) => void;
+  updateReferralBalance: (amount: number) => void;
+  addTransaction: (transaction: {
+    description: string;
+    amount: number;
+    status: string;
+    icon: string;
+    type: 'deposit' | 'withdraw' | 'transfer' | 'game';
+  }) => void;
+  formatCurrency: (amount: number) => string;
+  formatUSDT: (amount: number) => string;
+  addWallet: (wallet: { address: string; network: string }) => void;
+  setDefaultWallet: (wallet: { address: string; network: string } | null) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [balance, setBalanceState] = useState(0);
-  const [gameBalance, setGameBalanceState] = useState(0);
-  const [usdtBalance, setUsdtBalanceState] = useState(0);
-  const [advertiseBalance, setAdvertiseBalanceState] = useState(0);
-  const [referralBalance, setReferralBalanceState] = useState(3500);
+  const [gameBalance, setGameBalance] = useState(0);
+  const [usdtBalance, setUsdtBalance] = useState(0);
+  const [advertiseBalance, setAdvertiseBalance] = useState(0);
+  const [referralBalance, setReferralBalance] = useState(3500);
+  const [isVIP, setIsVIP] = useState(false);
+  const [vipLevel, setVipLevelState] = useState<0 | 1 | 2 | 3>(0);
+  const [vipProgress, setVipProgress] = useState(0);
+  const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [hasPin, setHasPin] = useState(false);
+  const [theme, setThemeState] = useState<'light' | 'dark'>('dark'); // Force dark mode permanently
+  const [userWallets, setUserWallets] = useState<Array<{ address: string; network: string }>>([]);
+  const [defaultWallet, setDefaultWallet] = useState<{ address: string; network: string } | null>(null);
+  const [transactions, setTransactions] = useState<Array<{
+    id: string;
+    description: string;
+    amount: number;
+    date: string;
+    status: string;
+    icon: string;
+    type: 'deposit' | 'withdraw' | 'transfer' | 'game';
+  }>>([]);
 
-  const [isVIP] = useState(false);
-  const [vipLevel] = useState<0 | 1 | 2 | 3>(0);
-  const [vipProgress] = useState(0);
-
-  const [isAgeVerified] = useState(false);
-  const [hasPin] = useState(false);
-
-  const [currencyPreference, setCurrencyPreferenceState] =
-    useState<'ngn' | 'usd'>('usd');
-
-  const [theme, setThemeState] = useState<'light' | 'dark'>('dark');
-
-  const [exchangeRate] = useState(1500);
-
-  const [userBankAccounts, setUserBankAccounts] = useState<any[]>([]);
-  const [userWallets, setUserWallets] = useState<any[]>([]);
-  const [defaultBank, setDefaultBankState] = useState<any>(null);
-  const [defaultWallet, setDefaultWalletState] = useState<any>(null);
-  const [transactions, setTransactions] = useState<any[]>([]);
-
-  const FIXED_RATE = 1400;
-
-  // ================= BALANCE =================
-  const setBalance = (v: number) => setBalanceState(v);
-  const setGameBalance = (v: number) => setGameBalanceState(v);
-  const setUsdtBalance = (v: number) => setUsdtBalanceState(v);
-  const setAdvertiseBalance = (v: number) =>
-    setAdvertiseBalanceState(v);
-  const setReferralBalance = (v: number) =>
-    setReferralBalanceState(v);
-
-  const updateBalance = (a: number) =>
-    setBalanceState(prev => prev + a);
-
-  // ================= BANK / WALLET =================
-  const setDefaultBank = (b: any) => setDefaultBankState(b);
-  const setDefaultWallet = (w: any) => setDefaultWalletState(w);
-
-  const addBankAccount = (b: any) =>
-    setUserBankAccounts(prev => [...prev, b]);
-
-  const addWallet = (w: any) =>
-    setUserWallets(prev => [...prev, w]);
-
-  // ================= TRANSACTIONS =================
-  const addTransaction = (t: any) => {
-    const now = new Date();
-    const date =
-      now.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-      }) +
-      ', ' +
-      now.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false,
-      });
-
-    setTransactions(prev => [
-      {
-        id: Math.random().toString(36).substr(2, 9),
-        ...t,
-        date,
-      },
-      ...prev,
-    ]);
+  // Update VIP level and reset progress
+  const setVipLevel = (level: 0 | 1 | 2 | 3) => {
+    setVipLevelState(level);
+    setVipProgress(0); // Reset progress when leveling up
   };
 
-  // ================= CURRENCY =================
-  const setCurrencyPreference = (p: 'ngn' | 'usd') =>
-    setCurrencyPreferenceState(p);
-
-  const convertAmount = (a: number, from: 'ngn' | 'usd') =>
-    from === 'ngn' ? a / FIXED_RATE : a * FIXED_RATE;
-
-  const formatCurrency = (a: number, forceUSD = false) => {
-    const v = Math.floor(a);
-    return currencyPreference === 'usd' || forceUSD
-      ? `$${v.toLocaleString()}`
-      : `₦${v.toLocaleString()}`;
-  };
-
-  const formatUSDT = (a: number) =>
-    `$${Math.floor(a).toLocaleString()}`;
-
-  // ================= THEME FIX (IMPORTANT) =================
+  // Force dark mode on mount
   useEffect(() => {
     const root = document.documentElement;
+    root.classList.add('dark');
+    root.classList.add('dark-theme');
+    localStorage.setItem('theme', 'dark');
 
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.add('dark-theme');
-      root.classList.remove('light-theme');
-    } else {
-      root.classList.remove('dark');
-      root.classList.add('light-theme');
-      root.classList.remove('dark-theme');
+    // Remove light theme if it exists
+    root.classList.remove('light-theme');
+  }, []);
+
+  // Load balances from localStorage on mount
+  useEffect(() => {
+    try {
+      const savedBalance = localStorage.getItem('wagxa_balance');
+      const savedGameBalance = localStorage.getItem('wagxa_game_balance');
+      const savedUsdtBalance = localStorage.getItem('wagxa_usdt_balance');
+      const savedAdvertiseBalance = localStorage.getItem('wagxa_advertise_balance');
+      const savedReferralBalance = localStorage.getItem('wagxa_referral_balance');
+      const savedTransactions = localStorage.getItem('wagxa_transactions');
+
+      if (savedBalance) setBalanceState(parseFloat(savedBalance));
+      if (savedGameBalance) setGameBalance(parseFloat(savedGameBalance));
+      if (savedUsdtBalance) setUsdtBalance(parseFloat(savedUsdtBalance));
+      if (savedAdvertiseBalance) setAdvertiseBalance(parseFloat(savedAdvertiseBalance));
+      if (savedReferralBalance) setReferralBalance(parseFloat(savedReferralBalance));
+      if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
+    } catch (e) {
+      // Silently handle error
     }
-  }, [theme]);
+  }, []);
 
-  const setTheme = (t: 'light' | 'dark') => {
-    setThemeState(t);
+  // Save balances to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('wagxa_balance', balance.toString());
+  }, [balance]);
 
+  useEffect(() => {
+    localStorage.setItem('wagxa_game_balance', gameBalance.toString());
+  }, [gameBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('wagxa_usdt_balance', usdtBalance.toString());
+  }, [usdtBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('wagxa_advertise_balance', advertiseBalance.toString());
+  }, [advertiseBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('wagxa_referral_balance', referralBalance.toString());
+  }, [referralBalance]);
+
+  useEffect(() => {
+    localStorage.setItem('wagxa_transactions', JSON.stringify(transactions));
+  }, [transactions]);
+
+  // Listen for bonus completion events
+  useEffect(() => {
+    const handleBonusCompleted = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { amount } = customEvent.detail;
+
+      // Transfer bonus to main balance
+      setBalanceState(prev => prev + amount);
+
+      // Add to transaction history
+      const newTransaction = {
+        id: Date.now().toString(),
+        description: `Bonus Converted to Main Balance - $${amount.toFixed(2)}`,
+        amount: amount,
+        date: new Date().toLocaleDateString(),
+        status: 'completed',
+        icon: '✅',
+        type: 'transfer' as const
+      };
+      setTransactions(prev => [newTransaction, ...prev]);
+    };
+
+    window.addEventListener('bonusCompleted', handleBonusCompleted);
+
+    return () => {
+      window.removeEventListener('bonusCompleted', handleBonusCompleted);
+    };
+  }, []);
+
+  const setBalance = (newBalance: number) => {
+    setBalanceState(newBalance);
+  };
+
+  const setTheme = (newTheme: 'light' | 'dark') => {
+    setThemeState(newTheme);
+    localStorage.setItem('theme', newTheme);
+    applyTheme(newTheme);
+  };
+
+  const applyTheme = (theme: 'light' | 'dark') => {
     const root = document.documentElement;
-
-    if (t === 'dark') {
-      root.classList.add('dark');
+    if (theme === 'dark') {
       root.classList.add('dark-theme');
-      root.classList.remove('light-theme');
     } else {
-      root.classList.remove('dark');
-      root.classList.add('light-theme');
       root.classList.remove('dark-theme');
     }
+  };
 
-    localStorage.setItem('theme', t);
+  const updateBalance = (amount: number) => {
+    setBalanceState(prev => prev + amount);
+  };
+
+  const updateGameBalance = (amount: number) => {
+    setGameBalance(prev => prev + amount);
+  };
+
+  const updateUsdtBalance = (amount: number) => {
+    setUsdtBalance(prev => prev + amount);
+  };
+
+  const updateAdvertiseBalance = (amount: number) => {
+    setAdvertiseBalance(prev => prev + amount);
+  };
+
+  const updateReferralBalance = (amount: number) => {
+    setReferralBalance(prev => prev + amount);
+  };
+
+  const formatCurrency = (amount: number): string => {
+    // Remove .00 from all balances
+    const roundedAmount = Math.floor(amount);
+    return `$${roundedAmount.toLocaleString('en-US')}`;
+  };
+
+  const formatUSDT = (amount: number): string => {
+    const roundedAmount = Math.floor(amount);
+    return `$${roundedAmount.toLocaleString('en-US')}`;
+  };
+
+  const addWallet = (wallet: { address: string; network: string }) => {
+    setUserWallets(prev => [...prev, wallet]);
+  };
+
+  const addTransaction = (transaction: {
+    description: string;
+    amount: number;
+    status: string;
+    icon: string;
+    type: 'deposit' | 'withdraw' | 'transfer' | 'game';
+  }) => {
+    const now = new Date();
+    const dateString = now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ', ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+    
+    const newTransaction = {
+      id: Math.random().toString(36).substr(2, 9),
+      description: transaction.description,
+      amount: transaction.amount,
+      date: dateString,
+      status: transaction.status,
+      icon: transaction.icon,
+      type: transaction.type,
+    };
+    setTransactions(prev => [newTransaction, ...prev]);
   };
 
   return (
@@ -189,45 +254,36 @@ export function UserProvider({ children }: { children: ReactNode }) {
         usdtBalance,
         advertiseBalance,
         referralBalance,
-
         isVIP,
         vipLevel,
         vipProgress,
-
         isAgeVerified,
         hasPin,
-
-        currencyPreference,
         theme,
-        exchangeRate,
-
-        userBankAccounts,
-        userWallets,
-        defaultBank,
-        defaultWallet,
-        transactions,
-
         setBalance,
         setGameBalance,
         setUsdtBalance,
         setAdvertiseBalance,
         setReferralBalance,
-
-        setDefaultBank,
-        setDefaultWallet,
-
-        setCurrencyPreference,
+        setIsVIP,
+        setVipLevel,
+        setVipProgress,
+        setIsAgeVerified,
+        setHasPin,
         setTheme,
-
         updateBalance,
-
-        addBankAccount,
-        addWallet,
+        updateGameBalance,
+        updateUsdtBalance,
+        updateAdvertiseBalance,
+        updateReferralBalance,
         addTransaction,
-
         formatCurrency,
         formatUSDT,
-        convertAmount,
+        userWallets,
+        defaultWallet,
+        addWallet,
+        setDefaultWallet,
+        transactions,
       }}
     >
       {children}
@@ -236,8 +292,9 @@ export function UserProvider({ children }: { children: ReactNode }) {
 }
 
 export function useUser() {
-  const ctx = useContext(UserContext);
-  if (!ctx)
-    throw new Error('useUser must be used within UserProvider');
-  return ctx;
+  const context = useContext(UserContext);
+  if (context === undefined) {
+    throw new Error('useUser must be used within a UserProvider');
+  }
+  return context;
 }

@@ -38,13 +38,22 @@ export function AuthModals({
     setError('');
     setIsLoading(true);
 
+    // Check if Supabase is configured
+    if (!supabase) {
+      // Mock login for development without Supabase
+      setTimeout(() => {
+        setIsLoading(false);
+        onClose();
+        if (onSuccess) onSuccess();
+      }, 1000);
+      return;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
-
-      console.log("LOGIN RESPONSE:", { data, error });
 
       if (error) {
         setError(error.message);
@@ -66,7 +75,6 @@ export function AuthModals({
       window.location.href = "/wallet";
 
     } catch (err) {
-      console.log(err);
       setError("Something went wrong");
       setIsLoading(false);
     }
@@ -81,6 +89,17 @@ export function AuthModals({
     if (registerData.password !== registerData.confirmPassword) {
       setError("Passwords do not match");
       setIsLoading(false);
+      return;
+    }
+
+    // Check if Supabase is configured
+    if (!supabase) {
+      // Mock registration for development without Supabase
+      setTimeout(() => {
+        setIsLoading(false);
+        onClose();
+        if (onSuccess) onSuccess();
+      }, 1000);
       return;
     }
 
@@ -104,7 +123,6 @@ export function AuthModals({
       window.location.href = "/wallet";
 
     } catch (err) {
-      console.log(err);
       setError("Something went wrong");
       setIsLoading(false);
     }

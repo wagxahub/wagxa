@@ -35,7 +35,7 @@ export function Root() {
   const location = useLocation();
 
   // Check if we're on the landing page
-  const isHomePage = location.pathname === '/home';
+  const isHomePage = location.pathname === '/';
 
   // Auto-close sidebar on route change (mobile)
   useEffect(() => {
@@ -43,8 +43,8 @@ export function Root() {
   }, [location.pathname]);
 
   const handleAuthSuccess = () => {
-    // After successful login/register, redirect to wallet (dashboard at /)
-    navigate('/');
+    // After successful login/register, redirect to wallet dashboard
+    navigate('/wallet');
   };
 
   return (

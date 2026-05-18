@@ -63,7 +63,7 @@ export default function WelcomeBonus() {
   const [pendingClaim, setPendingClaim] = useState(false);
 
   if (hasClaimedWelcomeBonus) {
-    navigate('/');
+    navigate('/wallet');
     return null;
   }
 
@@ -97,7 +97,7 @@ export default function WelcomeBonus() {
           message: `You've successfully claimed $${selectedTier.bonus} ${selectedTier.badge} bonus with ${selectedTier.wagering}x wagering requirement`,
           icon: '🎁',
         });
-        navigate('/bonus-success');
+        navigate('/wallet');
       } else {
         setError('Failed to claim bonus');
       }
@@ -133,7 +133,9 @@ export default function WelcomeBonus() {
           icon: '🎁',
         });
         setPendingClaim(false);
-        navigate('/bonus-success');
+
+        // Navigate to wallet - the modal will be closed by handleUSDTSuccess
+        navigate('/wallet');
       } else {
         setError('Failed to claim bonus');
       }

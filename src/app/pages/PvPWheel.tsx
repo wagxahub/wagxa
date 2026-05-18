@@ -229,7 +229,6 @@ export function PvPWheel() {
     // Generate 5-9 bots (leaving room for user to join)
     const botCount = Math.floor(Math.random() * 5) + 5; // 5-9 bots
     
-    console.log(`🤖 [${tier}] Generating ${botCount} bots`);
     
     for (let i = 0; i < botCount; i++) {
       const random = Math.random();
@@ -288,7 +287,6 @@ export function PvPWheel() {
         return prevStates;
       }
       
-      console.log(`✅ [${tier}] Bot ${bot.name} joining with $${bot.betAmount}`);
       
       const newPlayer: Player = {
         id: bot.id,
@@ -329,7 +327,6 @@ export function PvPWheel() {
 
   // Initialize all tiers on mount
   useEffect(() => {
-    console.log('🎮 INITIALIZING MULTI-TIER PVP WHEEL...');
     
     setTierStates({
       CASUAL: { ...createInitialTierState(), botQueue: generateBotQueue('CASUAL') },
@@ -337,7 +334,6 @@ export function PvPWheel() {
       PRO: { ...createInitialTierState(), botQueue: generateBotQueue('PRO') },
     });
     
-    console.log('✅ All tiers initialized!');
   }, []);
 
   // Idle rotation for each tier
@@ -432,7 +428,6 @@ export function PvPWheel() {
         const startTime = Date.now();
         const totalDuration = 25000;
         
-        console.log(`⏱️ [${tier.id}] Countdown STARTED`);
         
         const interval = setInterval(() => {
           const elapsed = Date.now() - startTime;
@@ -449,7 +444,6 @@ export function PvPWheel() {
               clearInterval(tierTimerRefs.current[tier.id]!);
               tierTimerRefs.current[tier.id] = null;
               
-              console.log(`⏰ [${tier.id}] Countdown complete! Starting spin...`);
               
               setTimeout(() => {
                 startSpinForTier(tier.id);
@@ -499,7 +493,6 @@ export function PvPWheel() {
         const checkInterval = BOT_CONFIG.FAST_JOIN_MODE ? 200 : 500;
         const startTime = Date.now();
         
-        console.log(`🤖 [${tier.id}] Bot engine STARTED. Queue: ${tierState.botQueue.length} bots`);
         
         const timer = setInterval(() => {
           const currentTime = (Date.now() - startTime) / 1000;
@@ -510,7 +503,6 @@ export function PvPWheel() {
             
             // Lock at T-5 seconds
             if (timeRemaining <= 5 && !currentTierState.isLocked) {
-              console.log(`🔒 [${tier.id}] Round LOCKED`);
               return {
                 ...prevStates,
                 [tier.id]: { ...currentTierState, isLocked: true }
@@ -556,7 +548,6 @@ export function PvPWheel() {
       );
       if (matchingTier && matchingTier.id !== activeTier) {
         setActiveTier(matchingTier.id);
-        console.log(`✅ Auto-switched to ${matchingTier.label} tier for $${betAmount} bet`);
       }
     }
   }, [betAmount, activeTier]);
@@ -584,7 +575,6 @@ export function PvPWheel() {
       // Auto join the round
       const betToUse = autoJoinBetAmount;
       
-      console.log(`🤖 [${activeTier}] AUTO-JOIN: Joining round with bet $${betToUse}`);
       
       // Deduct balance
       updateGameBalance(-betToUse);
@@ -657,7 +647,6 @@ export function PvPWheel() {
         if (lastReset !== today) {
           setWeeklyLeaderboard([]);
           localStorage.setItem('pvp_wheel_leaderboard_reset', today);
-          console.log('📊 Weekly leaderboard reset!');
         }
       }
     };
@@ -672,7 +661,6 @@ export function PvPWheel() {
   const handleJoinRound = () => {
     const tierState = tierStates[activeTier];
     
-    console.log(`🎯 [${activeTier}] Join attempt:`, { gameState: tierState.gameState, isLocked: tierState.isLocked, betAmount, hasJoined: tierState.hasJoined });
     
     if (tierState.gameState !== 'countdown') {
       toast.error('Wait for the next round to start');
@@ -748,7 +736,6 @@ export function PvPWheel() {
       };
     });
     
-    console.log(`✅ [${activeTier}] User joined successfully with $${betAmount} bet!`);
     setPoolPulse(true);
     setTimeout(() => setPoolPulse(false), 1000);
   };
@@ -759,14 +746,12 @@ export function PvPWheel() {
       const tierState = prevStates[tier];
       
       if (tierState.players.length === 0) {
-        console.error(`❌ [${tier}] CANNOT SPIN - NO PLAYERS!`);
         toast.error(`No players in ${tier} - restarting...`);
         
         setTimeout(() => handleNewRound(tier), 1000);
         return prevStates;
       }
       
-      console.log(`🎰 [${tier}] SPINNING with ${tierState.players.length} players, pool: $${tierState.totalPool}`);
       
       // Pick winner
       const random = Math.random() * 100;
@@ -781,23 +766,19 @@ export function PvPWheel() {
         }
       }
       
-      console.log(`🎯 [${tier}] Winner selected: ${selectedWinner.username} with ${selectedWinner.percentage.toFixed(2)}% chance`);
       
       // Calculate rotation
       const segments = generateWheelSegments(tierState.players);
       const winnerSegment = segments.find(s => s.player.id === selectedWinner.id);
       
       if (!winnerSegment) {
-        console.error('No winner segment found!');
         return prevStates;
       }
       
       // DEBUG: Log all segments with their angles
-      console.log(`📊 [${tier}] ALL SEGMENTS:`);
       segments.forEach((seg, idx) => {
         const center = (seg.startAngle + seg.endAngle) / 2;
         const isWinner = seg.player.id === selectedWinner.id;
-        console.log(`  ${isWinner ? '🏆' : '  '} ${idx}: ${seg.player.username} | Start: ${seg.startAngle.toFixed(1)}° | End: ${seg.endAngle.toFixed(1)}° | Center: ${center.toFixed(1)}° | ${seg.player.percentage.toFixed(1)}%`);
       });
       
       // === EXACT IMPLEMENTATION AS SPECIFIED ===
@@ -813,7 +794,6 @@ export function PvPWheel() {
       const baseRotation = 6 * 360; // 6 full spins
       const totalRotation = baseRotation + targetAngle;
       
-      console.log(`🎲 [${tier}] Rotation calc: Winner center: ${winnerCenter.toFixed(1)}°, targetAngle: ${targetAngle.toFixed(1)}°, totalRotation: ${totalRotation.toFixed(1)}°`);
       
       tierRotationRefs.current[tier] = totalRotation % 360;
       
@@ -837,12 +817,10 @@ export function PvPWheel() {
         // CRITICAL: Only update user history if user actually played (userBetAmount > 0)
         const userActuallyPlayed = tierState.userBetAmount > 0 && tierState.hasJoined;
         
-        console.log(`📊 [${tier}] Round #${tierState.roundCounter} Result - Winner: ${selectedWinner.username} (${selectedWinner.id}), User played: ${userActuallyPlayed}, User bet: $${tierState.userBetAmount}, hasJoined: ${tierState.hasJoined}`);
         
         if (selectedWinner.id === 'you' && userActuallyPlayed) {
           updateGameBalance(tierState.totalPool);
           
-          console.log(`✅ [${tier}] User WON Round #${tierState.roundCounter} - Adding to MY HISTORY (bet: $${tierState.userBetAmount}, won: $${tierState.totalPool})`);
           // Add to user history - WIN
           setUserHistory(prev => {
             const newHistory = [{
@@ -854,12 +832,10 @@ export function PvPWheel() {
               timestamp: Date.now(),
               tier: tier,
             }, ...prev.slice(0, 19)];
-            console.log(`📝 [${tier}] MY HISTORY updated (length: ${newHistory.length}):`, newHistory[0]);
             return newHistory;
           });
         } else if (selectedWinner.id !== 'you' && userActuallyPlayed) {
           // User LOST - only add if user actually played
-          console.log(`❌ [${tier}] User LOST Round #${tierState.roundCounter} - Adding to MY HISTORY (bet: $${tierState.userBetAmount})`);
           setUserHistory(prev => {
             const newHistory = [{
               id: `history-${Date.now()}-${Math.random()}`,
@@ -870,11 +846,9 @@ export function PvPWheel() {
               timestamp: Date.now(),
               tier: tier,
             }, ...prev.slice(0, 19)];
-            console.log(`📝 [${tier}] MY HISTORY updated (length: ${newHistory.length}):`, newHistory[0]);
             return newHistory;
           });
         } else {
-          console.log(`ℹ️ [${tier}] User didn't play Round #${tierState.roundCounter} - NOT adding to MY HISTORY (Winner: ${selectedWinner.username}, User bet: $${tierState.userBetAmount})`);
         }
         
         // Add to winner list
@@ -888,7 +862,6 @@ export function PvPWheel() {
             timestamp: Date.now(),
             tier: tier,
           };
-          console.log(`🏆 ADDING TO WINNERS LIST: ${selectedWinner.username} won $${tierState.totalPool}`);
           return [newWinner, ...prev.slice(0, 19)];
         });
         
@@ -946,7 +919,6 @@ export function PvPWheel() {
     setTierStates(prevStates => {
       const tierState = prevStates[tier];
       
-      console.log(`🔄 [${tier}] Starting new round`);
       
       // Cleanup timers
       if (tierBotRefs.current[tier]) {
@@ -1487,17 +1459,12 @@ export function PvPWheel() {
             {/* Tab Content */}
             <div className="space-y-1.5 max-h-[300px] overflow-y-auto">
               {(() => {
-                console.log(`📱 MOBILE TAB: ${historyViewTab}, Winners count: ${recentWinnersList.length}, My History count: ${userHistory.length}`);
-                console.log('📱 recentWinnersList:', recentWinnersList.slice(0, 3).map(w => `${w.username}`));
-                console.log('📱 userHistory:', userHistory.slice(0, 3).map(h => `Round #${h.roundNumber} ${h.result}`));
                 return null;
               })()}
               {historyViewTab === 'winners' ? (
                 <>
-                  {console.log('🏆 RENDERING WINNERS LIST (MOBILE)')}
                   {recentWinnersList.slice(0, 10).map((winner) => {
                     const tierConfig = TIERS.find(t => t.id === winner.tier);
-                    console.log('  Winner item:', winner.username);
                     return (
                       <div
                         key={winner.id}
@@ -1539,10 +1506,8 @@ export function PvPWheel() {
                 </>
               ) : (
                 <>
-                  {console.log('📝 RENDERING MY HISTORY (MOBILE)')}
                   {userHistory.slice(0, 10).map((record) => {
                     const tierConfig = TIERS.find(t => t.id === record.tier);
-                    console.log('  My History item:', `Round #${record.roundNumber}`, record.result);
                     return (
                       <div
                         key={record.id}
@@ -2095,7 +2060,6 @@ export function PvPWheel() {
               {/* Tab Content */}
               <div className="space-y-1.5 max-h-[300px] overflow-y-auto pr-2">
                 {(() => {
-                  console.log(`💻 DESKTOP TAB: ${historyViewTab}, Winners count: ${recentWinnersList.length}, My History count: ${userHistory.length}`);
                   return null;
                 })()}
                 {historyViewTab === 'winners' ? (

@@ -6,6 +6,12 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+
     // Get current session
     supabase.auth.getSession().then(({ data }) => {
       setUser(data.session?.user ?? null);

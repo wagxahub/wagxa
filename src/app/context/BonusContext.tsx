@@ -70,7 +70,7 @@ export function BonusProvider({ children }: { children: ReactNode }) {
         setHasClaimedNoDepositBonus(true);
       }
     } catch (e) {
-      console.error('Failed to load bonus data');
+      // Silently handle error
     }
   }, []);
 

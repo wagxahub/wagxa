@@ -4,257 +4,426 @@ import { toast } from 'sonner';
 interface DepositModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onUSDTSuccess?: (amount: number) => void;
+  onSuccess: (amount: number) => void;
 }
 
-export function DepositModal({ isOpen, onClose, onUSDTSuccess }: DepositModalProps) {
-  // ONLY USDT FLOW (NO NAIRA)
-  const [step, setStep] = useState<'input' | 'send' | 'hash' | 'verifying' | 'success' | 'error' | 'expired'>('input');
+export function DepositModal({ isOpen, onClose, onSuccess }: DepositModalProps) {
+  // USDT deposit states
+  const [usdtAmount, setUsdtAmount] = useState('');
+  const [usdtStep, setUsdtStep] = useState<'input' | 'instructions' | 'hash' | 'verifying' | 'success' | 'error' | 'expired'>('input');
+  const [usdtTimer, setUsdtTimer] = useState(600); // 10 minutes
+  const [usdtWalletAddress] = useState('0xA7f92Ks8d2F3m9Lp4Hj7Nk5Qr6Ts8Vw3Xy9Z93Kd');
+  const [usdtTxHash, setUsdtTxHash] = useState('');
+  const [usdtError, setUsdtError] = useState('');
+  const [showQRCode, setShowQRCode] = useState(false);
 
-  const [amount, setAmount] = useState('');
-  const [txHash, setTxHash] = useState('');
-  const [error, setError] = useState('');
-  const [timer, setTimer] = useState(600);
-
-  const walletAddress = '0xA7f92Ks8d2F3m9Lp4Hj7Nk5Qr6Ts8Vw3Xy9Z93Kd';
-
-  // TIMER
+  // USDT timer countdown
   useEffect(() => {
-    if (step === 'send' && timer > 0) {
+    if (usdtStep === 'instructions' && usdtTimer > 0) {
       const interval = setInterval(() => {
-        setTimer(prev => {
+        setUsdtTimer(prev => {
           if (prev <= 1) {
-            setStep('expired');
+            setUsdtStep('expired');
             return 0;
           }
           return prev - 1;
         });
       }, 1000);
-
       return () => clearInterval(interval);
     }
-  }, [step, timer]);
+  }, [usdtStep, usdtTimer]);
 
-  const formatTime = () => {
-    const m = Math.floor(timer / 60);
-    const s = timer % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
-
-  const handleGenerate = () => {
-    const amt = parseFloat(amount);
-    if (!amt || amt < 5) {
-      setError('Minimum 5 USDT');
-      return;
-    }
-    setError('');
-    setTimer(600);
-    setStep('send');
-  };
-
-  const copy = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied');
-  };
-
-  const handleVerify = () => {
-    if (!txHash || txHash.length < 10) {
-      setError('Invalid transaction hash');
+  // ============================================
+  // USDT DEPOSIT HANDLERS
+  // ============================================
+  const handleUSDTGenerate = () => {
+    const amount = parseFloat(usdtAmount);
+    if (!amount || amount < 5) {
+      setUsdtError('Minimum deposit is 5 USDT');
       return;
     }
 
-    setError('');
-    setStep('verifying');
+    setUsdtError('');
+    setUsdtTimer(600);
+    setUsdtStep('instructions');
+  };
 
+  const handleUSDTProceedToHash = () => {
+    setUsdtStep('hash');
+  };
+
+  const handleUSDTVerify = () => {
+    if (!usdtTxHash || usdtTxHash.length < 10) {
+      setUsdtError('Please enter a valid transaction hash');
+      return;
+    }
+
+    setUsdtError('');
+    setUsdtStep('verifying');
+
+    // Simulate verification
     setTimeout(() => {
-      Math.random() > 0.2 ? setStep('success') : setStep('error');
-    }, 2500);
+      // 80% success rate for demo
+      if (Math.random() > 0.2) {
+        setUsdtStep('success');
+      } else {
+        setUsdtStep('error');
+      }
+    }, 3000);
   };
 
-  const handleSuccess = () => {
-    onUSDTSuccess?.(parseFloat(amount));
+  const handleUSDTSuccess = () => {
+    const amount = parseFloat(usdtAmount);
+
+    // Reset flow first
+    resetUSDTFlow();
+
+    // Close modal
     onClose();
-    reset();
+
+    // Call success callback last (this might trigger navigation)
+    onSuccess(amount);
   };
 
-  const reset = () => {
-    setStep('input');
-    setAmount('');
-    setTxHash('');
-    setError('');
+  const handleCopyUSDTAddress = () => {
+    navigator.clipboard.writeText(usdtWalletAddress);
+    toast.success('Copied!');
+  };
+
+  const handleCopyUSDTAmount = () => {
+    navigator.clipboard.writeText(usdtAmount);
+    toast.success('Copied!');
+  };
+
+  const formatUSDTTimer = () => {
+    const mins = Math.floor(usdtTimer / 60);
+    const secs = usdtTimer % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const resetUSDTFlow = () => {
+    setUsdtStep('input');
+    setUsdtAmount('');
+    setUsdtTxHash('');
+    setUsdtError('');
+    setShowQRCode(false);
+  };
+
+  const handleCancel = () => {
+    onClose();
+    resetUSDTFlow();
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50">
-      <div className="w-full max-w-md rounded-2xl shadow-xl bg-[#0B0F19] border border-white/10">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="rounded-lg shadow-lg max-w-md w-full" style={{ backgroundColor: 'var(--bg-card)' }}>
 
-        {/* HEADER (Binance style minimal) */}
-        <div className="p-5 border-b border-white/10 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold">
-              ₮
+        {/* USDT DEPOSIT CONTENT */}
+        <>
+          {/* USDT - STEP 1: INPUT */}
+          {usdtStep === 'input' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Deposit USDT
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                    Enter Amount (USDT)
+                  </label>
+                  <input
+                    type="number"
+                    value={usdtAmount}
+                    onChange={(e) => {
+                      setUsdtAmount(e.target.value);
+                      setUsdtError('');
+                    }}
+                    placeholder="0.00"
+                    className="w-full px-4 py-3 border rounded-lg text-lg"
+                    style={{
+                      borderColor: usdtError ? '#EF4444' : 'var(--border-color)',
+                      color: 'var(--text-primary)',
+                      backgroundColor: 'var(--bg-secondary)'
+                    }}
+                  />
+                  {usdtError && (
+                    <p className="text-sm mt-1" style={{ color: '#EF4444' }}>
+                      {usdtError}
+                    </p>
+                  )}
+                </div>
+
+                <div className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(10, 132, 255, 0.1)' }}>
+                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    💡 Minimum deposit: 5 USDT
+                  </p>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                  <button
+                    onClick={handleCancel}
+                    className="flex-1 py-3 rounded-lg border-2 font-medium"
+                    style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleUSDTGenerate}
+                    disabled={!usdtAmount || parseFloat(usdtAmount) < 5}
+                    className="flex-1 py-3 rounded-lg text-white font-medium transition-all"
+                    style={{
+                      backgroundColor: usdtAmount && parseFloat(usdtAmount) >= 5 ? '#0A84FF' : '#9CA3AF',
+                      cursor: usdtAmount && parseFloat(usdtAmount) >= 5 ? 'pointer' : 'not-allowed',
+                      opacity: usdtAmount && parseFloat(usdtAmount) >= 5 ? 1 : 0.6
+                    }}
+                  >
+                    Generate Deposit
+                  </button>
+                </div>
+              </div>
             </div>
-            <h2 className="text-white font-semibold">USDT Deposit</h2>
-          </div>
+          )}
 
-          <button onClick={onClose} className="text-white/60 hover:text-white">✕</button>
-        </div>
-
-        {/* STEP 1 */}
-        {step === 'input' && (
-          <div className="p-5 space-y-4">
-            <p className="text-white/60 text-sm">Enter amount to deposit</p>
-
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => {
-                setAmount(e.target.value);
-                setError('');
-              }}
-              placeholder="0.00 USDT"
-              className="w-full p-3 rounded-lg bg-[#111827] text-white border border-white/10"
-            />
-
-            {error && <p className="text-red-400 text-xs">{error}</p>}
-
-            <div className="text-xs text-white/50">
-              Min deposit: 5 USDT
-            </div>
-
-            <button
-              onClick={handleGenerate}
-              className="w-full py-3 rounded-lg bg-blue-500 text-white font-medium"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {/* STEP 2 - SEND */}
-        {step === 'send' && (
-          <div className="p-5 space-y-4">
-
-            <div className="flex justify-between text-xs text-white/50">
-              <span>Send USDT (BEP20)</span>
-              <span className="text-blue-400 font-bold">{formatTime()}</span>
-            </div>
-
-            <div className="bg-[#111827] p-4 rounded-lg space-y-2 border border-white/10">
-
-              <div className="text-xs text-white/50">Amount</div>
-              <div className="text-blue-400 font-bold text-lg">
-                {amount} USDT
+          {/* USDT - STEP 2: INSTRUCTIONS */}
+          {usdtStep === 'instructions' && (
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  Deposit USDT
+                </h2>
+                <div className="flex items-center gap-1 px-3 py-1.5 rounded-lg" style={{ backgroundColor: usdtTimer <= 120 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(10, 132, 255, 0.1)' }}>
+                  <span className="text-sm">⏱</span>
+                  <span className="text-sm font-bold" style={{ color: usdtTimer <= 120 ? '#EF4444' : '#0A84FF' }}>
+                    {formatUSDTTimer()}
+                  </span>
+                </div>
               </div>
 
-              <button
-                onClick={() => copy(amount)}
-                className="text-xs text-blue-400"
-              >
-                Copy Amount
-              </button>
+              <div className="p-4 rounded-lg mb-4" style={{ backgroundColor: 'var(--bg-accent)' }}>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Send EXACT amount</p>
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-2xl font-bold" style={{ color: '#0A84FF' }}>{usdtAmount} USDT</p>
+                      <button
+                        onClick={handleCopyUSDTAmount}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all active:scale-95"
+                        style={{ backgroundColor: '#0A84FF', color: 'white' }}
+                      >
+                        Copy Amount
+                      </button>
+                    </div>
+                  </div>
 
-              <hr className="border-white/10 my-2" />
+                  <div className="pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                    <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>Network</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>BSC (BEP20)</p>
+                  </div>
 
-              <div className="text-xs text-white/50">Wallet</div>
-              <div className="text-white text-xs break-all">
-                {walletAddress}
+                  <div className="pt-3 border-t" style={{ borderColor: 'var(--border-color)' }}>
+                    <p className="text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>Wallet Address</p>
+                    <p className="text-xs font-mono mb-2 break-all" style={{ color: 'var(--text-primary)' }}>
+                      {usdtWalletAddress}
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleCopyUSDTAddress}
+                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all active:scale-95"
+                        style={{ backgroundColor: '#0A84FF', color: 'white' }}
+                      >
+                        Copy Address
+                      </button>
+                      <button
+                        onClick={() => setShowQRCode(!showQRCode)}
+                        className="flex-1 py-2 rounded-lg text-xs font-medium transition-all active:scale-95"
+                        style={{ backgroundColor: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+                      >
+                        {showQRCode ? 'Hide QR' : 'Show QR Code'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {showQRCode && (
+                    <div className="pt-3 border-t flex justify-center" style={{ borderColor: 'var(--border-color)' }}>
+                      <div className="p-4 rounded-lg" style={{ backgroundColor: 'white' }}>
+                        <div className="w-40 h-40 flex items-center justify-center" style={{ backgroundColor: '#E5E7EB' }}>
+                          <p className="text-xs text-center px-2" style={{ color: '#6B7280' }}>QR Code<br/>(Demo)</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
+              <div className="p-3 rounded-lg mb-4" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', borderLeft: '3px solid #EF4444' }}>
+                <p className="text-xs font-medium mb-1" style={{ color: '#EF4444' }}>⚠️ Warning</p>
+                <ul className="text-xs space-y-1" style={{ color: 'var(--text-secondary)' }}>
+                  <li>• Send only USDT via BSC (BEP20)</li>
+                  <li>• Amount must match exactly</li>
+                  <li>• Wrong network or token will result in loss of funds</li>
+                </ul>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 py-3 rounded-lg border-2 font-medium"
+                  style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUSDTProceedToHash}
+                  className="flex-1 py-3 rounded-lg text-white font-medium transition-all"
+                  style={{ backgroundColor: '#0A84FF' }}
+                >
+                  I Have Sent Payment
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* USDT - STEP 3: SUBMIT HASH */}
+          {usdtStep === 'hash' && (
+            <div className="p-6">
+              <h2 className="text-xl font-semibold mb-4" style={{ color: 'var(--text-primary)' }}>
+                Confirm Payment
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2" style={{ color: 'var(--text-primary)' }}>
+                    Enter Transaction Hash (TxID)
+                  </label>
+                  <input
+                    type="text"
+                    value={usdtTxHash}
+                    onChange={(e) => {
+                      setUsdtTxHash(e.target.value);
+                      setUsdtError('');
+                    }}
+                    placeholder="0x8392ab...kdl3"
+                    className="w-full px-4 py-3 border rounded-lg text-sm font-mono"
+                    style={{
+                      borderColor: usdtError ? '#EF4444' : 'var(--border-color)',
+                      color: 'var(--text-primary)',
+                      backgroundColor: 'var(--bg-secondary)'
+                    }}
+                  />
+                  <p className="text-xs mt-1" style={{ color: usdtError ? '#EF4444' : 'var(--text-secondary)' }}>
+                    {usdtError || 'Paste the transaction hash from your wallet'}
+                  </p>
+                </div>
+
+                <button
+                  onClick={handleUSDTVerify}
+                  disabled={!usdtTxHash || usdtTxHash.length < 10}
+                  className="w-full py-3 rounded-lg text-white font-medium transition-all"
+                  style={{
+                    backgroundColor: usdtTxHash && usdtTxHash.length >= 10 ? '#0A84FF' : '#9CA3AF',
+                    cursor: usdtTxHash && usdtTxHash.length >= 10 ? 'pointer' : 'not-allowed',
+                    opacity: usdtTxHash && usdtTxHash.length >= 10 ? 1 : 0.6
+                  }}
+                >
+                  Verify Payment
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* USDT - STEP 4: VERIFYING */}
+          {usdtStep === 'verifying' && (
+            <div className="p-12 text-center">
+              <div className="mb-6 flex justify-center">
+                <div className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#0A84FF', borderTopColor: 'transparent' }}></div>
+              </div>
+              <h2 className="text-xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
+                🔄 Verifying transaction...
+              </h2>
+              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+                Please wait while we confirm your deposit
+              </p>
+            </div>
+          )}
+
+          {/* USDT - SUCCESS */}
+          {usdtStep === 'success' && (
+            <div className="p-8 text-center">
+              <div className="mb-6 mx-auto w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
+                <div className="text-5xl">✓</div>
+              </div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: '#10B981' }}>
+                ✅ Deposit Confirmed
+              </h2>
+              <p className="text-3xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
+                +{usdtAmount} USDT
+              </p>
+              <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+                added to wallet
+              </p>
               <button
-                onClick={() => copy(walletAddress)}
-                className="text-xs text-blue-400"
+                onClick={handleUSDTSuccess}
+                className="w-full py-3 rounded-lg text-white font-medium transition-all active:scale-95"
+                style={{ backgroundColor: '#0A84FF' }}
               >
-                Copy Address
+                Continue
               </button>
             </div>
+          )}
 
-            <button
-              onClick={() => setStep('hash')}
-              className="w-full py-3 rounded-lg bg-blue-500 text-white"
-            >
-              I have sent payment
-            </button>
-          </div>
-        )}
+          {/* USDT - ERROR */}
+          {usdtStep === 'error' && (
+            <div className="p-8 text-center">
+              <div className="mb-6 mx-auto w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+                <div className="text-5xl">✕</div>
+              </div>
+              <h2 className="text-2xl font-bold mb-2" style={{ color: '#EF4444' }}>
+                ❌ Transaction not found
+              </h2>
+              <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
+                or incorrect amount
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={handleCancel}
+                  className="flex-1 py-3 rounded-lg border-2 font-medium"
+                  style={{ borderColor: 'var(--border-color)', color: 'var(--text-primary)' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setUsdtStep('hash')}
+                  className="flex-1 py-3 rounded-lg text-white font-medium"
+                  style={{ backgroundColor: '#0A84FF' }}
+                >
+                  Try Again
+                </button>
+              </div>
+            </div>
+          )}
 
-        {/* STEP 3 - HASH */}
-        {step === 'hash' && (
-          <div className="p-5 space-y-4">
-
-            <input
-              value={txHash}
-              onChange={(e) => setTxHash(e.target.value)}
-              placeholder="Enter transaction hash"
-              className="w-full p-3 rounded-lg bg-[#111827] text-white border border-white/10"
-            />
-
-            {error && <p className="text-red-400 text-xs">{error}</p>}
-
-            <button
-              onClick={handleVerify}
-              className="w-full py-3 rounded-lg bg-blue-500 text-white"
-            >
-              Verify
-            </button>
-          </div>
-        )}
-
-        {/* VERIFY */}
-        {step === 'verifying' && (
-          <div className="p-10 text-center text-white">
-            <div className="animate-spin w-10 h-10 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4" />
-            Verifying transaction...
-          </div>
-        )}
-
-        {/* SUCCESS */}
-        {step === 'success' && (
-          <div className="p-10 text-center space-y-4 text-white">
-            <div className="text-4xl text-blue-400">✓</div>
-            <div className="text-green-400 font-bold">Deposit Successful</div>
-            <div>{amount} USDT</div>
-
-            <button
-              onClick={handleSuccess}
-              className="w-full py-3 rounded-lg bg-blue-500"
-            >
-              Continue
-            </button>
-          </div>
-        )}
-
-        {/* ERROR */}
-        {step === 'error' && (
-          <div className="p-10 text-center space-y-4 text-white">
-            <div className="text-red-400 text-3xl">✕</div>
-            <div>Transaction not found</div>
-
-            <button
-              onClick={() => setStep('hash')}
-              className="w-full py-3 rounded-lg bg-blue-500"
-            >
-              Try Again
-            </button>
-          </div>
-        )}
-
-        {/* EXPIRED */}
-        {step === 'expired' && (
-          <div className="p-10 text-center text-white space-y-4">
-            <div className="text-red-400">Session expired</div>
-
-            <button
-              onClick={reset}
-              className="w-full py-3 rounded-lg bg-blue-500"
-            >
-              Restart
-            </button>
-          </div>
-        )}
-
+          {/* USDT - EXPIRED */}
+          {usdtStep === 'expired' && (
+            <div className="p-8 text-center">
+              <div className="mb-6 mx-auto w-20 h-20 rounded-full flex items-center justify-center" style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)' }}>
+                <div className="text-5xl">⏱</div>
+              </div>
+              <h2 className="text-2xl font-bold mb-6" style={{ color: '#EF4444' }}>
+                ❌ Session expired
+              </h2>
+              <button
+                onClick={resetUSDTFlow}
+                className="w-full py-3 rounded-lg text-white font-medium"
+                style={{ backgroundColor: '#0A84FF' }}
+              >
+                Generate New Deposit
+              </button>
+            </div>
+          )}
+        </>
       </div>
     </div>
   );

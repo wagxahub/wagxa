@@ -22,9 +22,9 @@ const NotificationContext = createContext<NotificationContextType | undefined>(u
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([
-    { id: 1, type: 'win', title: 'Game Win!', message: 'You won $18 in the color prediction game', time: '5 mins ago', read: false, icon: '🎮' },
-    { id: 2, type: 'reward', title: 'Daily Reward', message: '$3 daily reward claimed successfully', time: '2 hours ago', read: false, icon: '🎁' },
-    { id: 3, type: 'referral', title: 'New Referral', message: 'You earned $5 from a referral!', time: '1 day ago', read: false, icon: '👥' },
+    { id: 1, type: 'system', title: 'Welcome to WAGXA!', message: 'Start playing and earning rewards today', time: '1 day ago', read: false, icon: '🎉' },
+    { id: 2, type: 'system', title: 'New Update Available', message: 'Check out our latest features and improvements', time: '2 days ago', read: false, icon: '🚀' },
+    { id: 3, type: 'system', title: 'System Maintenance', message: 'Scheduled maintenance completed successfully', time: '3 days ago', read: true, icon: '🔧' },
   ]);
 
   const unreadCount = notifications.filter(n => !n.read).length;

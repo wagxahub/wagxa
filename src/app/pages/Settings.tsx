@@ -1,4 +1,4 @@
-import { Settings as SettingsIcon, DollarSign, Moon, Lock, CreditCard, Globe, Save, Shield, Building, CheckCircle } from 'lucide-react';
+import { Settings as SettingsIcon, Moon, Lock, CreditCard, Globe, Save, Shield, CheckCircle } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { BackButton } from '../components/BackButton';
 import { useUser } from '../context/UserContext';
@@ -8,16 +8,12 @@ import { useNavigate } from 'react-router';
 
 export function Settings() {
   const navigate = useNavigate();
-  const { 
-    currencyPreference, 
-    setCurrencyPreference, 
-    theme, 
-    setTheme, 
-    hasPin, 
+  const {
+    theme,
+    setTheme,
+    hasPin,
     setHasPin,
-    addBankAccount,
     addWallet,
-    setDefaultBank,
     setDefaultWallet
   } = useUser();
   const [showPinModal, setShowPinModal] = useState(false);
@@ -25,14 +21,6 @@ export function Settings() {
   const [confirmPin, setConfirmPin] = useState('');
   const [language, setLanguage] = useState('English');
   const [usdtAddress, setUsdtAddress] = useState('');
-  const [bankName, setBankName] = useState('');
-  const [accountNumber, setAccountNumber] = useState('');
-  const [accountName, setAccountName] = useState('');
-
-  const handleCurrencyChange = (newCurrency: 'ngn' | 'usd') => {
-    setCurrencyPreference(newCurrency);
-    toast.success(`Currency changed to ${newCurrency === 'ngn' ? 'Nigerian Naira (₦)' : 'US Dollar ($)'}`);
-  };
 
   const handleThemeChange = (newTheme: 'light' | 'dark') => {
     setTheme(newTheme);
@@ -64,17 +52,6 @@ export function Settings() {
     addWallet(wallet);
     setDefaultWallet(wallet);
     toast.success('Wallet address saved ✅');
-  };
-
-  const handleSaveBankAccount = () => {
-    if (!accountName || !accountNumber || !bankName) {
-      toast.error('Please fill all bank details');
-      return;
-    }
-    const bank = { accountName, accountNumber, bankName };
-    addBankAccount(bank);
-    setDefaultBank(bank);
-    toast.success('Bank account saved successfully ✅');
   };
 
   return (
@@ -112,54 +89,6 @@ export function Settings() {
           
           {/* LEFT COLUMN: 65% - PREFERENCES */}
           <div className="w-full lg:flex-[0.65] space-y-5">
-            
-            {/* Currency Preference */}
-            <div className="rounded-2xl shadow-sm p-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(10, 132, 255, 0.1)' }}>
-                  <DollarSign className="w-5 h-5" style={{ color: '#0A84FF' }} />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Currency Preference
-                  </h2>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    Choose your display currency
-                  </p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleCurrencyChange('ngn')}
-                  className="p-4 rounded-xl font-semibold transition-all"
-                  style={{
-                    backgroundColor: currencyPreference === 'ngn' ? 'rgba(10, 132, 255, 0.1)' : 'var(--bg-accent)',
-                    border: currencyPreference === 'ngn' ? '2px solid #0A84FF' : '1px solid var(--border-color)',
-                    color: currencyPreference === 'ngn' ? '#0A84FF' : 'var(--text-primary)',
-                  }}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {currencyPreference === 'ngn' && <CheckCircle className="w-4 h-4" />}
-                    <span>₦ Nigerian Naira</span>
-                  </div>
-                </button>
-                <button
-                  onClick={() => handleCurrencyChange('usd')}
-                  className="p-4 rounded-xl font-semibold transition-all"
-                  style={{
-                    backgroundColor: currencyPreference === 'usd' ? 'rgba(10, 132, 255, 0.1)' : 'var(--bg-accent)',
-                    border: currencyPreference === 'usd' ? '2px solid #0A84FF' : '1px solid var(--border-color)',
-                    color: currencyPreference === 'usd' ? '#0A84FF' : 'var(--text-primary)',
-                  }}
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    {currencyPreference === 'usd' && <CheckCircle className="w-4 h-4" />}
-                    <span>$ US Dollar</span>
-                  </div>
-                </button>
-              </div>
-            </div>
 
             {/* Theme Selection */}
             <div className="rounded-2xl shadow-sm p-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
@@ -352,73 +281,6 @@ export function Settings() {
                 >
                   <Save className="w-4 h-4" />
                   Save Wallet
-                </button>
-              </div>
-            </div>
-
-            {/* Bank Account */}
-            <div className="rounded-2xl shadow-sm p-6" style={{ backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-color)' }}>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}>
-                  <Building className="w-5 h-5" style={{ color: '#3B82F6' }} />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
-                    Bank Account
-                  </h2>
-                  <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
-                    For NGN withdrawals
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-3">
-                <input
-                  type="text"
-                  value={bankName}
-                  onChange={(e) => setBankName(e.target.value)}
-                  placeholder="Bank Name"
-                  className="w-full px-4 py-3 rounded-xl text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-accent)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <input
-                  type="text"
-                  value={accountNumber}
-                  onChange={(e) => setAccountNumber(e.target.value)}
-                  placeholder="Account Number"
-                  className="w-full px-4 py-3 rounded-xl text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-accent)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <input
-                  type="text"
-                  value={accountName}
-                  onChange={(e) => setAccountName(e.target.value)}
-                  placeholder="Account Name"
-                  className="w-full px-4 py-3 rounded-xl text-sm"
-                  style={{
-                    backgroundColor: 'var(--bg-accent)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-primary)',
-                  }}
-                />
-                <button
-                  onClick={handleSaveBankAccount}
-                  className="w-full py-3 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all active:scale-95"
-                  style={{
-                    background: 'linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)',
-                    color: 'white',
-                  }}
-                >
-                  <Save className="w-4 h-4" />
-                  Save Bank Account
                 </button>
               </div>
             </div>

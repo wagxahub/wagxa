@@ -13,8 +13,6 @@ export default function Login() {
     try {
       const { data, error } = await signIn(email, password);
 
-      console.log("LOGIN RESPONSE:", { data, error });
-
       setLoading(false);
 
       // ❌ ERROR HANDLING
@@ -36,7 +34,6 @@ export default function Login() {
       window.location.href = "/wallet";
     } catch (err) {
       setLoading(false);
-      console.log("UNEXPECTED ERROR:", err);
       alert("Something went wrong");
     }
   };

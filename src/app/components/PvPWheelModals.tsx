@@ -379,7 +379,6 @@ export function PvPWheelModals({
                 <motion.button
                   onClick={() => {
                     setShowProvablyFairModal(false);
-                    // TODO: Implement verification logic
                   }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}

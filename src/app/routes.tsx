@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate, redirect } from "react-router-dom";
 import { Root } from "./pages/Root";
 
 // 🔐 AUTH
@@ -14,6 +14,10 @@ import { VIPTasks } from "./pages/VIPTasks";
 import { DailyRewards } from "./pages/DailyRewards";
 import { DailyRebate } from "./pages/DailyRebate";
 import { Referrals } from "./pages/Referrals";
+import { AffiliateWallet } from "./pages/AffiliateWallet";
+import { ReferralWallet } from "./pages/ReferralWallet";
+import { AdvertiserDashboard } from "./pages/AdvertiserDashboard";
+import { CreateCampaign } from "./pages/CreateCampaign";
 import { Profile } from "./pages/Profile";
 import { Upgrade } from "./pages/Upgrade";
 import { Settings } from "./pages/Settings";
@@ -38,12 +42,12 @@ export const router = createBrowserRouter([
       // 🏠 LANDING PAGE
       { index: true, Component: HomePage },
 
-      // 🔐 AUTH
-      { path: "login", Component: Login },
-
-      // 💰 MAIN DASHBOARD
+      // 💰 WALLET & DASHBOARD
       { path: "wallet", Component: Wallet },
       { path: "dashboard", Component: Dashboard },
+
+      // 🔐 AUTH
+      { path: "login", Component: Login },
 
       // 🎮 GAME PAGES
       { path: "game", Component: Game },
@@ -60,8 +64,14 @@ export const router = createBrowserRouter([
       { path: "daily-rewards", Component: DailyRewards },
       { path: "daily-rebate", Component: DailyRebate },
 
+      // 💰 AFFILIATE & ADVERTISING
+      { path: "advertiser", Component: AdvertiserDashboard },
+      { path: "advertiser/create", Component: CreateCampaign },
+
       // 👤 ACCOUNT
       { path: "referrals", Component: Referrals },
+      { path: "referral-wallet", Component: ReferralWallet },
+      { path: "affiliate-wallet", Component: AffiliateWallet },
       { path: "profile", Component: Profile },
       { path: "upgrade", Component: Upgrade },
       { path: "settings", Component: Settings },
